@@ -1,0 +1,225 @@
+﻿ /*
+         [Flags()]
+        public enum DisplayDeviceStateFlags : int
+        {
+            AttachedToDesktop = 0x1,
+            MultiDriver = 0x2,
+            PrimaryDevice = 0x4,
+            MirroringDriver = 0x8,
+            VGACompatible = 0x10,
+            Removable = 0x20,
+            ModesPruned = 0x8000000,
+            Remote = 0x4000000,
+            Disconnect = 0x2000000
+        }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        public struct DISPLAY_DEVICE
+        {
+            [MarshalAs(UnmanagedType.U4)]
+            public int cb;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+            public string DeviceName;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceString;
+            [MarshalAs(UnmanagedType.U4)]
+            public DisplayDeviceStateFlags StateFlags;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceID;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
+            public string DeviceKey;
+        }
+
+        internal enum DMCOLOR : short
+        {
+            DMCOLOR_UNKNOWN = 0,
+            DMCOLOR_MONOCHROME = 1,
+            DMCOLOR_COLOR = 2
+        }
+        internal enum DMCOLLATE : short
+        {
+            DMCOLLATE_FALSE = 0,
+            DMCOLLATE_TRUE = 1
+        }
+        internal enum DM : short
+        {
+            DMDUP_UNKNOWN = 0,
+            DMDUP_SIMPLEX = 1,
+            DMDUP_VERTICAL = 2,
+            DMDUP_HORIZONTAL = 3
+        }
+
+        struct POINTL
+        {
+            public Int32 x;
+            public Int32 y;
+        }
+
+
+        [StructLayout(LayoutKind.Explicit, CharSet = CharSet.Ansi)]
+        struct DEVMODE
+        {
+            public const int CCHDEVICENAME = 32;
+            public const int CCHFORMNAME = 32;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHDEVICENAME)]
+            [System.Runtime.InteropServices.FieldOffset(0)]
+            public string dmDeviceName;
+            [System.Runtime.InteropServices.FieldOffset(32)]
+            public Int16 dmSpecVersion;
+            [System.Runtime.InteropServices.FieldOffset(34)]
+            public Int16 dmDriverVersion;
+            [System.Runtime.InteropServices.FieldOffset(36)]
+            public Int16 dmSize;
+            [System.Runtime.InteropServices.FieldOffset(38)]
+            public Int16 dmDriverExtra;
+            [System.Runtime.InteropServices.FieldOffset(40)]
+            public DM dmFields;
+
+            [System.Runtime.InteropServices.FieldOffset(44)]
+            Int16 dmOrientation;
+            [System.Runtime.InteropServices.FieldOffset(46)]
+            Int16 dmPaperSize;
+            [System.Runtime.InteropServices.FieldOffset(48)]
+            Int16 dmPaperLength;
+            [System.Runtime.InteropServices.FieldOffset(50)]
+            Int16 dmPaperWidth;
+            [System.Runtime.InteropServices.FieldOffset(52)]
+            Int16 dmScale;
+            [System.Runtime.InteropServices.FieldOffset(54)]
+            Int16 dmCopies;
+            [System.Runtime.InteropServices.FieldOffset(56)]
+            Int16 dmDefaultSource;
+            [System.Runtime.InteropServices.FieldOffset(58)]
+            Int16 dmPrintQuality;
+
+            [System.Runtime.InteropServices.FieldOffset(44)]
+            public POINTL dmPosition;
+            [System.Runtime.InteropServices.FieldOffset(52)]
+            public Int32 dmDisplayOrientation;
+            [System.Runtime.InteropServices.FieldOffset(56)]
+            public Int32 dmDisplayFixedOutput;
+
+            [System.Runtime.InteropServices.FieldOffset(60)]
+            public short dmColor; // See note below!
+            [System.Runtime.InteropServices.FieldOffset(62)]
+            public short dmDuplex; // See note below!
+            [System.Runtime.InteropServices.FieldOffset(64)]
+            public short dmYResolution;
+            [System.Runtime.InteropServices.FieldOffset(66)]
+            public short dmTTOption;
+            [System.Runtime.InteropServices.FieldOffset(68)]
+            public short dmCollate; // See note below!
+            [System.Runtime.InteropServices.FieldOffset(70)]
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = CCHFORMNAME)]
+            public string dmFormName;
+            [System.Runtime.InteropServices.FieldOffset(102)]
+            public Int16 dmLogPixels;
+            [System.Runtime.InteropServices.FieldOffset(104)]
+            public Int32 dmBitsPerPel;
+            [System.Runtime.InteropServices.FieldOffset(108)]
+            public Int32 dmPelsWidth;
+            [System.Runtime.InteropServices.FieldOffset(112)]
+            public Int32 dmPelsHeight;
+            [System.Runtime.InteropServices.FieldOffset(116)]
+            public Int32 dmDisplayFlags;
+            [System.Runtime.InteropServices.FieldOffset(116)]
+            public Int32 dmNup;
+            [System.Runtime.InteropServices.FieldOffset(120)]
+            public Int32 dmDisplayFrequency;
+        }
+
+        enum DISP_CHANGE : int
+        {
+            Successful = 0,
+            Restart = 1,
+            Failed = -1,
+            BadMode = -2,
+            NotUpdated = -3,
+            BadFlags = -4,
+            BadParam = -5,
+            BadDualView = -6
+        }
+
+        public enum ChangeDisplaySettingsFlags : uint
+        {
+            CDS_NONE = 0,
+            CDS_UPDATEREGISTRY = 0x00000001,
+            CDS_TEST = 0x00000002,
+            CDS_FULLSCREEN = 0x00000004,
+            CDS_GLOBAL = 0x00000008,
+            CDS_SET_PRIMARY = 0x00000010,
+            CDS_VIDEOPARAMETERS = 0x00000020,
+            CDS_ENABLE_UNSAFE_MODES = 0x00000100,
+            CDS_DISABLE_UNSAFE_MODES = 0x00000200,
+            CDS_RESET = 0x40000000,
+            CDS_RESET_EX = 0x20000000,
+            CDS_NORESET = 0x10000000
+        }
+        [DllImport("user32.dll")]
+        static extern DISP_CHANGE ChangeDisplaySettingsEx(string lpszDeviceName, ref DEVMODE lpDevMode, IntPtr hwnd, ChangeDisplaySettingsFlags dwflags, IntPtr lParam);
+
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        static extern bool EnumDisplayDevices(string lpDevice, uint iDevNum, ref DISPLAY_DEVICE lpDisplayDevice, uint dwFlags);
+        [DllImport("user32.dll")]
+        static extern bool EnumDisplaySettingsEx(string lpszDeviceName, uint iModeNum, out DEVMODE lpDevMode, uint dwFlags);
+
+                [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
+
+
+
+        private void SwitchToDevice(int i)
+        {
+            string devices="";
+            DISPLAY_DEVICE d = new DISPLAY_DEVICE();
+            d.cb = Marshal.SizeOf(d);
+            try
+            {
+                for (uint id = 0; EnumDisplayDevices(null, id, ref d, 0); id++)
+                {
+                    devices+=(
+                        String.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}",
+                                 id,
+                                 d.DeviceName,
+                                 d.DeviceString,
+                                 d.StateFlags,
+                                 d.DeviceID,
+                                 d.DeviceKey,
+                                 d.cb
+                                 )
+                                  +"\r\n");
+                    d.cb = Marshal.SizeOf(d);
+
+                    var disp = new DispSet();
+                    if (EnumDisplaySettings("\\\\.\\Display"+id, -2, ref disp) == 0)
+                    {
+                        devices += (
+                        String.Format("{0}, {1}, {2}",
+                                 disp.width,
+                                 disp.height,
+                                 disp.frequency
+                                 )
+                                  + "\r\n");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                devices+=(String.Format("{0}", ex.ToString()+"\r\n"));
+            }
+            MessageBox.Show(devices);
+            /*DISPLAY_DEVICE d = new DISPLAY_DEVICE();
+            DEVMODE dm = new DEVMODE();
+            d.cb = Marshal.SizeOf(d);
+            int deviceID = 1; // This is only for my device setting. Go through the whole EnumDisplayDevices to find your device  
+            EnumDisplayDevices(null, id, ref d, 0); //
+            EnumDisplaySettings(d.DeviceName, 0, ref dm);
+            dm.dmPelsWidth = 1024;
+            dm.dmPelsHeight = 768;
+            dm.dmPositionX = Screen.PrimaryScreen.Bounds.Right;
+            dm.dmFields = DM.Position | DM.PelsWidth | DM.PelsHeight;
+            ChangeDisplaySettingsEx(d.DeviceName, ref dm, IntPtr.Zero, CDS_UPDATEREGISTRY, IntPtr.Zero);
+        }*/
