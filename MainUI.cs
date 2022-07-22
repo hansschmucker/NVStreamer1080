@@ -202,21 +202,20 @@ namespace NVStreamer1080
         }
 
         private void Width_TextChanged(object sender, EventArgs e) {
-            int i;
-            if (!int.TryParse(DWidth.Text, out i))
-                DWidth.Text = (i=1920).ToString();
+            if (!int.TryParse(DWidth.Text, out desiredWidth))
+                DWidth.Text = (desiredWidth = 1920).ToString();
 
-            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Width", i,  RegistryValueKind.DWord);
+            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Width", desiredWidth,  RegistryValueKind.DWord);
 
-            if (!int.TryParse(DHeight.Text, out i))
-                DHeight.Text = (i = 1080).ToString();
+            if (!int.TryParse(DHeight.Text, out desiredHeight))
+                DHeight.Text = (desiredHeight = 1080).ToString();
 
-            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Height", i, RegistryValueKind.DWord);
+            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Height", desiredHeight, RegistryValueKind.DWord);
 
-            if (!int.TryParse(DRefresh.Text, out i))
-                DRefresh.Text = (i = 60).ToString();
+            if (!int.TryParse(DRefresh.Text, out desiredRefresh))
+                DRefresh.Text = (desiredRefresh = 60).ToString();
 
-            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Refresh", i, RegistryValueKind.DWord);
+            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Refresh", desiredRefresh, RegistryValueKind.DWord);
         }
     }
 }
