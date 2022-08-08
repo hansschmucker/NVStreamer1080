@@ -8,18 +8,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace NVStreamer1080
-{
-    public partial class NVStreamerMainUI : Form
-    {
-        public NVStreamerMainUI()
-        {
+namespace NVStreamer1080 {
+    public partial class NVStreamerMainUI : Form {
+        public NVStreamerMainUI() {
             InitializeComponent();
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct DispSet
-        {
+        public struct DispSet {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 106)]
             byte[] padding0;
             public int width, height, dummy, frequency;
@@ -38,18 +34,64 @@ namespace NVStreamer1080
         private int initialWidth;
         private int initialHeight;
         private int initialRefresh;
-        private bool useSecondScreen = false;
-        private int desiredWidth;
-        private int desiredHeight;
-        private int desiredRefresh;
+        private bool UseSecondScreen {
+            get { return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("UseSecondScreen", "0")) == "1"; }
+            set {
+                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("UseSecondScreen", value ? "1" : "0", RegistryValueKind.String);
+
+                InfoMode.Text = value ? "Switch screen" : "Change resolution";
+            }
+        }
+
+        private int DesiredWidth {
+            get {
+                return ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Width", 1920));
+            }
+            set {
+                DWidth.Text = value.ToString();
+                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Width", value, RegistryValueKind.DWord);
+
+                InfoTargetParams.Text= value+"x"+DesiredHeight+"/"+DesiredRefresh;
+            }
+        }
+
+        private int DesiredHeight {
+            get {
+                var v= ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Height", 1080));
+                return v;
+            }
+            set {
+                DHeight.Text = value.ToString();
+                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Height", value, RegistryValueKind.DWord);
+
+                InfoTargetParams.Text = DesiredWidth + "x" + value + "/" + DesiredRefresh;
+            }
+        }
+
+        private int DesiredRefresh {
+            get { return ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Refresh", 60)); }
+            set {
+                DRefresh.Text = value.ToString();
+                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Refresh", value, RegistryValueKind.DWord);
+
+                InfoTargetParams.Text = DesiredWidth + "x" + DesiredHeight + "/" + value;
+            }
+        }
+
         NotifyIcon trayNotifyIcon;
-        private void NVStreamerMainUI_Load(object sender, EventArgs e)
-        {
+        private void NVStreamerMainUI_Load(object sender, EventArgs e) {
             Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true).SetValue("NVStreamer1080", Application.ExecutablePath);
 
             var disp = new DispSet();
-            if (EnumDisplaySettings(null, -1, ref disp) == 0)
-            {
+            if (EnumDisplaySettings(null, -1, ref disp) == 0) {
                 Application.Exit();
                 return;
             }
@@ -57,8 +99,9 @@ namespace NVStreamer1080
             initialWidth = disp.width;
             initialHeight = disp.height;
             initialRefresh = disp.frequency;
+            InfoReturnParams.Text = initialWidth + "x" + initialHeight + "/" + initialRefresh;
 
-            
+
             var trayContextMenu = new ContextMenu();
             trayNotifyIcon = new NotifyIcon();
             IntPtr tryIconPtr = Resource1.TrayIcon.Handle;
@@ -66,18 +109,19 @@ namespace NVStreamer1080
 
             trayContextMenu.MenuItems.Add("Show UI", OnShow);
             trayContextMenu.MenuItems.Add("Exit", OnExit);
-            if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
-            useSecondScreen=((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("UseSecondScreen","0"))=="1";
-            desiredWidth = ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Width", 1920));
-            desiredHeight = ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Height", 1080));
-            desiredRefresh = ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Refresh", 60));
-            DWidth.Text = desiredHeight.ToString();
-            DHeight.Text = desiredWidth.ToString();
-            DRefresh.Text = desiredRefresh.ToString();
 
-            if (useSecondScreen)
-                useSecondScreenCB.Checked = true;
+            DWidth.Text = DesiredWidth.ToString();
+            DHeight.Text = DesiredHeight.ToString();
+            DRefresh.Text = DesiredRefresh.ToString();
+            this.DWidth.TextChanged += new System.EventHandler(this.Width_TextChanged);
+            this.DHeight.TextChanged += new System.EventHandler(this.Width_TextChanged);
+            this.DRefresh.TextChanged += new System.EventHandler(this.Width_TextChanged);
+
+            DesiredWidth = DesiredWidth;
+            DesiredHeight = DesiredHeight;
+            DesiredRefresh = DesiredRefresh;
+
+            UseSecondScreen = useSecondScreenCB.Checked= UseSecondScreen;
 
             trayNotifyIcon.Icon = trayIcon;
             trayNotifyIcon.Text = "NV Streamer 1080";
@@ -89,29 +133,26 @@ namespace NVStreamer1080
 
         }
 
+
+
         private bool allowClose = false;
 
-        protected override void Dispose(bool isDisposing)
-        {
-            if (!allowClose)
-            {
+        protected override void Dispose(bool isDisposing) {
+            if (!allowClose) {
                 ShowInTaskbar = false;
                 Visible = false;
                 return;
             }
 
-            if ((components != null))
-            {
+            if ((components != null)) {
                 components.Dispose();
             }
 
-            if (isDisposing)
-            {
+            if (isDisposing) {
                 trayNotifyIcon.Dispose();
             }
 
-            if (nv1080Set)
-            {
+            if (nv1080Set) {
                 SetResolution(initialWidth, initialHeight, initialRefresh);
                 nv1080Set = false;
             }
@@ -120,14 +161,12 @@ namespace NVStreamer1080
 
         }
 
-            private void OnExit(object sender, EventArgs e)
-        {
+        private void OnExit(object sender, EventArgs e) {
             allowClose = true;
             Application.Exit();
         }
 
-        private void OnShow(object sender, EventArgs e)
-        {
+        private void OnShow(object sender, EventArgs e) {
             ShowInTaskbar = true;
             Visible = true;
             BringToFront();
@@ -136,8 +175,7 @@ namespace NVStreamer1080
 
         private bool nv1080Set = false;
 
-        private void SetResolution(int w,int h, int r)
-        {
+        private void SetResolution(int w, int h, int r) {
 
             var disp = new DispSet();
             if (EnumDisplaySettings(null, -1, ref disp) == 0)
@@ -150,34 +188,38 @@ namespace NVStreamer1080
 
         }
 
-        private void CheckTimer_Tick(object sender, EventArgs e)
-        {
+        private void CheckTimer_Tick(object sender, EventArgs e) {
             var Switch = Path.Combine(Environment.SystemDirectory, "DisplaySwitch.exe");
             var nvRunning = Process.GetProcesses().Where(a => a.ProcessName.ToLower() == "nvstreamer").Count() > 0;
-            if(nvRunning && !nv1080Set)
-            {
-                if (useSecondScreen)
-                {
-                    
+            if (nvRunning && !nv1080Set) {
+                DoLog("Stream start detected");
+                InfoState.Text = "Stream active";
+                DWidth.Enabled = false;
+                DHeight.Enabled = false;
+                DRefresh.Enabled = false;
+                useSecondScreenCB.Enabled = false;
+                if (UseSecondScreen) {
+                    DoLog("Switching to external screen");
                     Process.Start(Switch, "/external");
                     label1.Text = "NVStreamer active: External";
-                }
-                else
-                {
-                    SetResolution(desiredWidth, desiredHeight, desiredRefresh);
-                    label1.Text = $"NVStreamer active: {desiredWidth}x{desiredHeight}@{desiredRefresh}";
+                } else {
+                    DoLog($"Setting target resolution {DesiredWidth}x{DesiredHeight}@{DesiredRefresh}");
+                    SetResolution(DesiredWidth, DesiredHeight, DesiredRefresh);
+                    label1.Text = $"NVStreamer active: {DesiredWidth}x{DesiredHeight}@{DesiredRefresh}";
                 }
                 nv1080Set = true;
-                useSecondScreenCB.Enabled = false;
-            }
-            else if(!nvRunning && nv1080Set)
-            {
-                if (useSecondScreen)
-                {
+            } else if (!nvRunning && nv1080Set) {
+                DoLog("Stream end detected");
+                InfoState.Text = "Stream ended";
+                DWidth.Enabled = true;
+                DHeight.Enabled = true;
+                DRefresh.Enabled = true;
+                useSecondScreenCB.Enabled = true;
+                if (UseSecondScreen) {
+                    DoLog("Switching to internal screen");
                     Process.Start(Switch, "/internal");
-                }
-                else
-                {
+                } else {
+                    DoLog($"Restoring resolution {initialWidth}x{initialHeight}@{initialRefresh}");
                     SetResolution(initialWidth, initialHeight, initialRefresh);
                 }
                 nv1080Set = false;
@@ -186,36 +228,25 @@ namespace NVStreamer1080
             }
         }
 
-        private void HideTimer_Tick(object sender, EventArgs e)
-        {
+        private void HideTimer_Tick(object sender, EventArgs e) {
             ShowInTaskbar = false;
             Visible = false;
             HideTimer.Enabled = false;
 
         }
 
-        private void OnSecondScreenCheckboxChange(object sender, EventArgs e)
-        {
-            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("UseSecondScreen", useSecondScreenCB.Checked ? "1" : "0", RegistryValueKind.String);
-            useSecondScreen = useSecondScreenCB.Checked;
-
+        private void OnSecondScreenCheckboxChange(object sender, EventArgs e) {
+            UseSecondScreen=useSecondScreenCB.Checked;
         }
 
         private void Width_TextChanged(object sender, EventArgs e) {
-            if (!int.TryParse(DWidth.Text, out desiredWidth))
-                DWidth.Text = (desiredWidth = 1920).ToString();
+            DesiredWidth = int.TryParse(DWidth.Text, out int w) ? w : 1920;
+            DesiredHeight = int.TryParse(DHeight.Text, out int h) ? h : 1080;
+            DesiredRefresh = int.TryParse(DRefresh.Text, out int r) ? r : 60;
+        }
 
-            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Width", desiredWidth,  RegistryValueKind.DWord);
-
-            if (!int.TryParse(DHeight.Text, out desiredHeight))
-                DHeight.Text = (desiredHeight = 1080).ToString();
-
-            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Height", desiredHeight, RegistryValueKind.DWord);
-
-            if (!int.TryParse(DRefresh.Text, out desiredRefresh))
-                DRefresh.Text = (desiredRefresh = 60).ToString();
-
-            Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Refresh", desiredRefresh, RegistryValueKind.DWord);
+        private void DoLog(string message) {
+            Log.Items.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message);
         }
     }
 }

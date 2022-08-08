@@ -27,6 +27,16 @@ namespace NVStreamer1080
             this.DHeight = new System.Windows.Forms.TextBox();
             this.DRefresh = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label5 = new System.Windows.Forms.Label();
+            this.label6 = new System.Windows.Forms.Label();
+            this.label7 = new System.Windows.Forms.Label();
+            this.InfoReturnParams = new System.Windows.Forms.Label();
+            this.InfoTargetParams = new System.Windows.Forms.Label();
+            this.InfoState = new System.Windows.Forms.Label();
+            this.InfoMode = new System.Windows.Forms.Label();
+            this.Log = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // CheckTimer
@@ -62,29 +72,27 @@ namespace NVStreamer1080
             this.useSecondScreenCB.UseVisualStyleBackColor = true;
             this.useSecondScreenCB.CheckedChanged += new System.EventHandler(this.OnSecondScreenCheckboxChange);
             // 
-            // Width
+            // DWidth
             // 
             this.DWidth.Location = new System.Drawing.Point(18, 140);
-            this.DWidth.Name = "Width";
+            this.DWidth.Name = "DWidth";
             this.DWidth.Size = new System.Drawing.Size(100, 26);
             this.DWidth.TabIndex = 2;
-            this.DWidth.TextChanged += new System.EventHandler(this.Width_TextChanged);
             // 
-            // Height
+            // DHeight
             // 
             this.DHeight.Location = new System.Drawing.Point(124, 140);
-            this.DHeight.Name = "Height";
+            this.DHeight.Name = "DHeight";
             this.DHeight.Size = new System.Drawing.Size(100, 26);
             this.DHeight.TabIndex = 3;
-            this.DHeight.TextChanged += new System.EventHandler(this.Width_TextChanged);
+
             // 
-            // Refresh
+            // DRefresh
             // 
             this.DRefresh.Location = new System.Drawing.Point(230, 140);
-            this.DRefresh.Name = "Refresh";
+            this.DRefresh.Name = "DRefresh";
             this.DRefresh.Size = new System.Drawing.Size(100, 26);
             this.DRefresh.TabIndex = 4;
-            this.DRefresh.TextChanged += new System.EventHandler(this.Width_TextChanged);
             // 
             // label2
             // 
@@ -95,11 +103,111 @@ namespace NVStreamer1080
             this.label2.TabIndex = 5;
             this.label2.Text = "Desired Width/Height/Refresh\r\n                 (only if switch is disabled)";
             // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(15, 188);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(90, 20);
+            this.label3.TabIndex = 6;
+            this.label3.Text = "Information";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(25, 208);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(53, 20);
+            this.label4.TabIndex = 7;
+            this.label4.Text = "Mode:";
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(25, 228);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(52, 20);
+            this.label5.TabIndex = 8;
+            this.label5.Text = "State:";
+            // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(25, 248);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(117, 20);
+            this.label6.TabIndex = 9;
+            this.label6.Text = "Target Params:";
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(25, 268);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(120, 20);
+            this.label7.TabIndex = 10;
+            this.label7.Text = "Return Params:";
+            // 
+            // InfoReturnParams
+            // 
+            this.InfoReturnParams.AutoSize = true;
+            this.InfoReturnParams.Location = new System.Drawing.Point(168, 268);
+            this.InfoReturnParams.Name = "InfoReturnParams";
+            this.InfoReturnParams.Size = new System.Drawing.Size(14, 20);
+            this.InfoReturnParams.TabIndex = 14;
+            this.InfoReturnParams.Text = "-";
+            // 
+            // InfoTargetParams
+            // 
+            this.InfoTargetParams.AutoSize = true;
+            this.InfoTargetParams.Location = new System.Drawing.Point(168, 248);
+            this.InfoTargetParams.Name = "InfoTargetParams";
+            this.InfoTargetParams.Size = new System.Drawing.Size(14, 20);
+            this.InfoTargetParams.TabIndex = 13;
+            this.InfoTargetParams.Text = "-";
+            // 
+            // InfoState
+            // 
+            this.InfoState.AutoSize = true;
+            this.InfoState.Location = new System.Drawing.Point(168, 228);
+            this.InfoState.Name = "InfoState";
+            this.InfoState.Size = new System.Drawing.Size(110, 20);
+            this.InfoState.TabIndex = 12;
+            this.InfoState.Text = "Stream ended";
+            // 
+            // InfoMode
+            // 
+            this.InfoMode.AutoSize = true;
+            this.InfoMode.Location = new System.Drawing.Point(168, 208);
+            this.InfoMode.Name = "InfoMode";
+            this.InfoMode.Size = new System.Drawing.Size(14, 20);
+            this.InfoMode.TabIndex = 11;
+            this.InfoMode.Text = "-";
+            // 
+            // Log
+            // 
+            this.Log.FormattingEnabled = true;
+            this.Log.ItemHeight = 20;
+            this.Log.Location = new System.Drawing.Point(18, 313);
+            this.Log.Name = "Log";
+            this.Log.Size = new System.Drawing.Size(312, 264);
+            this.Log.TabIndex = 15;
+            // 
             // NVStreamerMainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(352, 178);
+            this.ClientSize = new System.Drawing.Size(344, 594);
+            this.Controls.Add(this.Log);
+            this.Controls.Add(this.InfoReturnParams);
+            this.Controls.Add(this.InfoTargetParams);
+            this.Controls.Add(this.InfoState);
+            this.Controls.Add(this.InfoMode);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.label6);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.DRefresh);
             this.Controls.Add(this.DHeight);
@@ -126,6 +234,16 @@ namespace NVStreamer1080
         private System.Windows.Forms.TextBox DHeight;
         private System.Windows.Forms.TextBox DRefresh;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label InfoReturnParams;
+        private System.Windows.Forms.Label InfoTargetParams;
+        private System.Windows.Forms.Label InfoState;
+        private System.Windows.Forms.Label InfoMode;
+        private System.Windows.Forms.ListBox Log;
     }
 }
 
