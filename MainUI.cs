@@ -35,7 +35,11 @@ namespace NVStreamer1080 {
         private int initialHeight;
         private int initialRefresh;
         private bool UseSecondScreen {
-            get { return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("UseSecondScreen", "0")) == "1"; }
+            get {
+                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+                return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("UseSecondScreen", "0")) == "1";
+            }
             set {
                 if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
                     Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
@@ -47,25 +51,31 @@ namespace NVStreamer1080 {
 
         private int DesiredWidth {
             get {
+                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 return ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Width", 1920));
             }
             set {
-                DWidth.Text = value.ToString();
+                if (DWidth.Text != value.ToString())
+                    DWidth.Text = value.ToString();
                 if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
                     Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Width", value, RegistryValueKind.DWord);
 
-                InfoTargetParams.Text= value+"x"+DesiredHeight+"/"+DesiredRefresh;
+                InfoTargetParams.Text = value + "x" + DesiredHeight + "/" + DesiredRefresh;
             }
         }
 
         private int DesiredHeight {
             get {
-                var v= ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Height", 1080));
+                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+                var v = ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Height", 1080));
                 return v;
             }
             set {
-                DHeight.Text = value.ToString();
+                if (DHeight.Text != value.ToString())
+                    DHeight.Text = value.ToString();
                 if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
                     Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Height", value, RegistryValueKind.DWord);
@@ -75,9 +85,14 @@ namespace NVStreamer1080 {
         }
 
         private int DesiredRefresh {
-            get { return ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Refresh", 60)); }
+            get {
+                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+                return ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Refresh", 60));
+            }
             set {
-                DRefresh.Text = value.ToString();
+                if (DRefresh.Text != value.ToString())
+                    DRefresh.Text = value.ToString();
                 if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
                     Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Refresh", value, RegistryValueKind.DWord);
@@ -121,7 +136,7 @@ namespace NVStreamer1080 {
             DesiredHeight = DesiredHeight;
             DesiredRefresh = DesiredRefresh;
 
-            UseSecondScreen = useSecondScreenCB.Checked= UseSecondScreen;
+            UseSecondScreen = useSecondScreenCB.Checked = UseSecondScreen;
 
             trayNotifyIcon.Icon = trayIcon;
             trayNotifyIcon.Text = "NV Streamer 1080";
@@ -236,7 +251,8 @@ namespace NVStreamer1080 {
         }
 
         private void OnSecondScreenCheckboxChange(object sender, EventArgs e) {
-            UseSecondScreen=useSecondScreenCB.Checked;
+            if(UseSecondScreen != useSecondScreenCB.Checked)
+                UseSecondScreen = useSecondScreenCB.Checked;
         }
 
         private void Width_TextChanged(object sender, EventArgs e) {
