@@ -43,6 +43,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -54,11 +55,37 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AutoAction.cs" />
+    <Compile Include="ActionEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ActionEdit.Designer.cs">
+      <DependentUpon>ActionEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ApplicationEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ApplicationEdit.Designer.cs">
+      <DependentUpon>ApplicationEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="AutoActionSchedule.cs" />
+    <Compile Include="CaptureWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CaptureWindow.Designer.cs">
+      <DependentUpon>CaptureWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="MainUI.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="MainUI.Designer.cs">
       <DependentUpon>MainUI.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProcessEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProcessEdit.Designer.cs">
+      <DependentUpon>ProcessEdit.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -67,8 +94,21 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resource1.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="ActionEdit.resx">
+      <DependentUpon>ActionEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ApplicationEdit.resx">
+      <DependentUpon>ApplicationEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CaptureWindow.resx">
+      <DependentUpon>CaptureWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainUI.resx">
       <DependentUpon>MainUI.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProcessEdit.resx">
+      <DependentUpon>ProcessEdit.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

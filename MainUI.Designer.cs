@@ -37,6 +37,17 @@ namespace NVStreamer1080
             this.InfoState = new System.Windows.Forms.Label();
             this.InfoMode = new System.Windows.Forms.Label();
             this.Log = new System.Windows.Forms.ListBox();
+            this.CbAccelRestore = new System.Windows.Forms.CheckBox();
+            this.ListOnConnect = new System.Windows.Forms.ListBox();
+            this.ListOnDisconnect = new System.Windows.Forms.ListBox();
+            this.BtnConnectAdd = new System.Windows.Forms.Button();
+            this.label9 = new System.Windows.Forms.Label();
+            this.label10 = new System.Windows.Forms.Label();
+            this.BtnConnectDel = new System.Windows.Forms.Button();
+            this.BtnConnectEdit = new System.Windows.Forms.Button();
+            this.BtnDisconnectEdit = new System.Windows.Forms.Button();
+            this.BtnDisconnectDel = new System.Windows.Forms.Button();
+            this.BtnDisconnectadd = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // CheckTimer
@@ -70,7 +81,7 @@ namespace NVStreamer1080
             this.useSecondScreenCB.TabIndex = 1;
             this.useSecondScreenCB.Text = "Switch to second screen while streaming";
             this.useSecondScreenCB.UseVisualStyleBackColor = true;
-            this.useSecondScreenCB.CheckedChanged += new System.EventHandler(this.OnSecondScreenCheckboxChange);
+            this.useSecondScreenCB.CheckedChanged += new System.EventHandler(this.SaveSettings);
             // 
             // DWidth
             // 
@@ -85,7 +96,6 @@ namespace NVStreamer1080
             this.DHeight.Name = "DHeight";
             this.DHeight.Size = new System.Drawing.Size(100, 26);
             this.DHeight.TabIndex = 3;
-
             // 
             // DRefresh
             // 
@@ -188,16 +198,134 @@ namespace NVStreamer1080
             // 
             this.Log.FormattingEnabled = true;
             this.Log.ItemHeight = 20;
-            this.Log.Location = new System.Drawing.Point(18, 313);
+            this.Log.Location = new System.Drawing.Point(18, 366);
             this.Log.Name = "Log";
-            this.Log.Size = new System.Drawing.Size(312, 264);
+            this.Log.Size = new System.Drawing.Size(686, 204);
             this.Log.TabIndex = 15;
+            // 
+            // CbAccelRestore
+            // 
+            this.CbAccelRestore.AutoSize = true;
+            this.CbAccelRestore.Location = new System.Drawing.Point(381, 28);
+            this.CbAccelRestore.Name = "CbAccelRestore";
+            this.CbAccelRestore.Size = new System.Drawing.Size(234, 44);
+            this.CbAccelRestore.TabIndex = 23;
+            this.CbAccelRestore.Text = "Restore mouse acceleration\r\nprecision after stream end";
+            this.CbAccelRestore.UseVisualStyleBackColor = true;
+            this.CbAccelRestore.CheckedChanged += new System.EventHandler(this.SaveSettings);
+            // 
+            // ListOnConnect
+            // 
+            this.ListOnConnect.FormattingEnabled = true;
+            this.ListOnConnect.ItemHeight = 20;
+            this.ListOnConnect.Location = new System.Drawing.Point(379, 98);
+            this.ListOnConnect.Name = "ListOnConnect";
+            this.ListOnConnect.Size = new System.Drawing.Size(234, 104);
+            this.ListOnConnect.TabIndex = 25;
+            // 
+            // ListOnDisconnect
+            // 
+            this.ListOnDisconnect.FormattingEnabled = true;
+            this.ListOnDisconnect.ItemHeight = 20;
+            this.ListOnDisconnect.Location = new System.Drawing.Point(379, 235);
+            this.ListOnDisconnect.Name = "ListOnDisconnect";
+            this.ListOnDisconnect.Size = new System.Drawing.Size(234, 104);
+            this.ListOnDisconnect.TabIndex = 26;
+            // 
+            // BtnConnectAdd
+            // 
+            this.BtnConnectAdd.Location = new System.Drawing.Point(619, 98);
+            this.BtnConnectAdd.Name = "BtnConnectAdd";
+            this.BtnConnectAdd.Size = new System.Drawing.Size(85, 29);
+            this.BtnConnectAdd.TabIndex = 27;
+            this.BtnConnectAdd.Text = "Add";
+            this.BtnConnectAdd.UseVisualStyleBackColor = true;
+            this.BtnConnectAdd.Click += new System.EventHandler(this.BtnConnectAdd_Click);
+            // 
+            // label9
+            // 
+            this.label9.AutoSize = true;
+            this.label9.Location = new System.Drawing.Point(377, 75);
+            this.label9.Name = "label9";
+            this.label9.Size = new System.Drawing.Size(140, 20);
+            this.label9.TabIndex = 28;
+            this.label9.Text = "Action on Connect";
+            // 
+            // label10
+            // 
+            this.label10.AutoSize = true;
+            this.label10.Location = new System.Drawing.Point(378, 212);
+            this.label10.Name = "label10";
+            this.label10.Size = new System.Drawing.Size(160, 20);
+            this.label10.TabIndex = 29;
+            this.label10.Text = "Action on Disconnect";
+            // 
+            // BtnConnectDel
+            // 
+            this.BtnConnectDel.Location = new System.Drawing.Point(619, 133);
+            this.BtnConnectDel.Name = "BtnConnectDel";
+            this.BtnConnectDel.Size = new System.Drawing.Size(85, 29);
+            this.BtnConnectDel.TabIndex = 30;
+            this.BtnConnectDel.Text = "Remove";
+            this.BtnConnectDel.UseVisualStyleBackColor = true;
+            this.BtnConnectDel.Click += new System.EventHandler(this.BtnConnectDel_Click);
+            // 
+            // BtnConnectEdit
+            // 
+            this.BtnConnectEdit.Location = new System.Drawing.Point(619, 168);
+            this.BtnConnectEdit.Name = "BtnConnectEdit";
+            this.BtnConnectEdit.Size = new System.Drawing.Size(85, 29);
+            this.BtnConnectEdit.TabIndex = 31;
+            this.BtnConnectEdit.Text = "Edit";
+            this.BtnConnectEdit.UseVisualStyleBackColor = true;
+            this.BtnConnectEdit.Click += new System.EventHandler(this.BtnConnectEdit_Click);
+            // 
+            // BtnDisconnectEdit
+            // 
+            this.BtnDisconnectEdit.Location = new System.Drawing.Point(619, 305);
+            this.BtnDisconnectEdit.Name = "BtnDisconnectEdit";
+            this.BtnDisconnectEdit.Size = new System.Drawing.Size(85, 29);
+            this.BtnDisconnectEdit.TabIndex = 34;
+            this.BtnDisconnectEdit.Text = "Edit";
+            this.BtnDisconnectEdit.UseVisualStyleBackColor = true;
+            this.BtnDisconnectEdit.Click += new System.EventHandler(this.BtnDisconnectEdit_Click);
+            // 
+            // BtnDisconnectDel
+            // 
+            this.BtnDisconnectDel.Location = new System.Drawing.Point(619, 270);
+            this.BtnDisconnectDel.Name = "BtnDisconnectDel";
+            this.BtnDisconnectDel.Size = new System.Drawing.Size(85, 29);
+            this.BtnDisconnectDel.TabIndex = 33;
+            this.BtnDisconnectDel.Text = "Remove";
+            this.BtnDisconnectDel.UseVisualStyleBackColor = true;
+            this.BtnDisconnectDel.Click += new System.EventHandler(this.BtnDisconnectDel_Click);
+            // 
+            // BtnDisconnectadd
+            // 
+            this.BtnDisconnectadd.Location = new System.Drawing.Point(619, 235);
+            this.BtnDisconnectadd.Name = "BtnDisconnectadd";
+            this.BtnDisconnectadd.Size = new System.Drawing.Size(85, 29);
+            this.BtnDisconnectadd.TabIndex = 32;
+            this.BtnDisconnectadd.Text = "Add";
+            this.BtnDisconnectadd.UseVisualStyleBackColor = true;
+            this.BtnDisconnectadd.Click += new System.EventHandler(this.BtnDisconnectadd_Click);
             // 
             // NVStreamerMainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(344, 594);
+            this.ClientSize = new System.Drawing.Size(737, 594);
+            this.Controls.Add(this.BtnDisconnectEdit);
+            this.Controls.Add(this.BtnDisconnectDel);
+            this.Controls.Add(this.BtnDisconnectadd);
+            this.Controls.Add(this.BtnConnectEdit);
+            this.Controls.Add(this.BtnConnectDel);
+            this.Controls.Add(this.label10);
+            this.Controls.Add(this.label9);
+            this.Controls.Add(this.BtnConnectAdd);
+            this.Controls.Add(this.ListOnDisconnect);
+            this.Controls.Add(this.ListOnConnect);
+            this.Controls.Add(this.CbAccelRestore);
             this.Controls.Add(this.Log);
             this.Controls.Add(this.InfoReturnParams);
             this.Controls.Add(this.InfoTargetParams);
@@ -244,6 +372,17 @@ namespace NVStreamer1080
         private System.Windows.Forms.Label InfoState;
         private System.Windows.Forms.Label InfoMode;
         private System.Windows.Forms.ListBox Log;
+        private System.Windows.Forms.CheckBox CbAccelRestore;
+        private System.Windows.Forms.ListBox ListOnConnect;
+        private System.Windows.Forms.ListBox ListOnDisconnect;
+        private System.Windows.Forms.Button BtnConnectAdd;
+        private System.Windows.Forms.Label label9;
+        private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.Button BtnConnectDel;
+        private System.Windows.Forms.Button BtnConnectEdit;
+        private System.Windows.Forms.Button BtnDisconnectEdit;
+        private System.Windows.Forms.Button BtnDisconnectDel;
+        private System.Windows.Forms.Button BtnDisconnectadd;
     }
 }
 

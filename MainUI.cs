@@ -1,11 +1,15 @@
 ﻿using Microsoft.Win32;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
 namespace NVStreamer1080 {
@@ -34,15 +38,17 @@ namespace NVStreamer1080 {
         private int initialWidth;
         private int initialHeight;
         private int initialRefresh;
+
+        private void InitRegistry() {
+            if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
+                Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+        }
+
         private bool UseSecondScreen {
             get {
-                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("UseSecondScreen", "0")) == "1";
             }
             set {
-                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("UseSecondScreen", value ? "1" : "0", RegistryValueKind.String);
 
                 InfoMode.Text = value ? "Switch screen" : "Change resolution";
@@ -51,15 +57,12 @@ namespace NVStreamer1080 {
 
         private int DesiredWidth {
             get {
-                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 return ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Width", 1920));
             }
             set {
                 if (DWidth.Text != value.ToString())
                     DWidth.Text = value.ToString();
-                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Width", value, RegistryValueKind.DWord);
 
                 InfoTargetParams.Text = value + "x" + DesiredHeight + "/" + DesiredRefresh;
@@ -68,16 +71,13 @@ namespace NVStreamer1080 {
 
         private int DesiredHeight {
             get {
-                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 var v = ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Height", 1080));
                 return v;
             }
             set {
                 if (DHeight.Text != value.ToString())
                     DHeight.Text = value.ToString();
-                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
+
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Height", value, RegistryValueKind.DWord);
 
                 InfoTargetParams.Text = DesiredWidth + "x" + value + "/" + DesiredRefresh;
@@ -86,23 +86,53 @@ namespace NVStreamer1080 {
 
         private int DesiredRefresh {
             get {
-                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 return ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("Refresh", 60));
             }
             set {
                 if (DRefresh.Text != value.ToString())
                     DRefresh.Text = value.ToString();
-                if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
-                    Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("Refresh", value, RegistryValueKind.DWord);
 
                 InfoTargetParams.Text = DesiredWidth + "x" + DesiredHeight + "/" + value;
             }
         }
 
+        private JavaScriptSerializer JSON = new JavaScriptSerializer() {
+            MaxJsonLength = int.MaxValue
+        };
+
+        private AutoAction[] StartActions {
+            get {
+                return JSON.Deserialize<ArrayList>((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("OnStart", "[]")).OfType<object>().Select(a=>new AutoAction((Dictionary<string,object>)a)).ToArray();
+            }
+            set {
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("OnStart", JSON.Serialize(value.Select(a=>a.ToDictionary())), RegistryValueKind.String);
+            }
+        }
+
+        private AutoAction[] EndActions {
+            get {
+                return JSON.Deserialize<ArrayList>((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("OnEnd", "[]")).OfType<object>().Select(a => new AutoAction((Dictionary<string, object>)a)).ToArray();
+            }
+            set {
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("OnEnd", JSON.Serialize(value.Select(a => a.ToDictionary())), RegistryValueKind.String);
+            }
+        }
+
+        private bool RestoreAccelerationPrecision {
+            get {
+                return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("RestoreAccelerationPrecision", "0"))=="1";
+            }
+            set {
+                if (CbAccelRestore.Checked != value)
+                    CbAccelRestore.Checked = value;
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("RestoreAccelerationPrecision", value?"1":"0", RegistryValueKind.String);
+            }
+        }
+
         NotifyIcon trayNotifyIcon;
         private void NVStreamerMainUI_Load(object sender, EventArgs e) {
+            InitRegistry();
             Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true).SetValue("NVStreamer1080", Application.ExecutablePath);
 
             var disp = new DispSet();
@@ -111,6 +141,9 @@ namespace NVStreamer1080 {
                 return;
             }
 
+
+            ListOnConnect.Items.AddRange(StartActions);
+            ListOnDisconnect.Items.AddRange(EndActions);
             initialWidth = disp.width;
             initialHeight = disp.height;
             initialRefresh = disp.frequency;
@@ -128,9 +161,12 @@ namespace NVStreamer1080 {
             DWidth.Text = DesiredWidth.ToString();
             DHeight.Text = DesiredHeight.ToString();
             DRefresh.Text = DesiredRefresh.ToString();
-            this.DWidth.TextChanged += new System.EventHandler(this.Width_TextChanged);
-            this.DHeight.TextChanged += new System.EventHandler(this.Width_TextChanged);
-            this.DRefresh.TextChanged += new System.EventHandler(this.Width_TextChanged);
+            CbAccelRestore.Checked = RestoreAccelerationPrecision;
+
+            this.DWidth.TextChanged += new System.EventHandler(this.SaveSettings);
+            this.DHeight.TextChanged += new System.EventHandler(this.SaveSettings);
+            this.DRefresh.TextChanged += new System.EventHandler(this.SaveSettings);
+            this.CbAccelRestore.CheckedChanged += new System.EventHandler(this.SaveSettings);
 
             DesiredWidth = DesiredWidth;
             DesiredHeight = DesiredHeight;
@@ -167,9 +203,9 @@ namespace NVStreamer1080 {
                 trayNotifyIcon.Dispose();
             }
 
-            if (nv1080Set) {
+            if (StreamingIsActive) {
                 SetResolution(initialWidth, initialHeight, initialRefresh);
-                nv1080Set = false;
+                StreamingIsActive = false;
             }
 
             base.Dispose(isDisposing);
@@ -188,7 +224,7 @@ namespace NVStreamer1080 {
             CenterToScreen();
         }
 
-        private bool nv1080Set = false;
+        private bool StreamingIsActive = false;
 
         private void SetResolution(int w, int h, int r) {
 
@@ -203,16 +239,47 @@ namespace NVStreamer1080 {
 
         }
 
+        public Form CaptureOverlay = null;
+
+        public List<AutoActionSchedule> ActionsScheduled = new List<AutoActionSchedule>();
         private void CheckTimer_Tick(object sender, EventArgs e) {
             var Switch = Path.Combine(Environment.SystemDirectory, "DisplaySwitch.exe");
-            var nvRunning = Process.GetProcesses().Where(a => a.ProcessName.ToLower() == "nvstreamer").Count() > 0;
-            if (nvRunning && !nv1080Set) {
+            var nvStreamers = Process.GetProcesses().Where(a => a.ProcessName.ToLower() == "nvstreamer").ToList();
+            var nvRunning = nvStreamers.Any();
+            var nvPids = nvStreamers.Select(a => a.Id);
+            var now = DateTime.Now;
+
+            ActionsScheduled = ActionsScheduled.Where((a) => {
+                if (a.ScheduledDate < now) {
+                    try {
+                        a.ScheduledAction.Execute();
+                    } catch (Exception ex) {
+                        DoLog(ex.ToString());
+                    }
+                    return false;
+                } else {
+                    return true;
+                }
+            }).ToList();
+
+            var anyAbortable = ActionsScheduled.Where(a => a.ScheduledAction.AbortOnInput).Any();
+            if (CaptureOverlay==null && anyAbortable) {
+                CaptureOverlay = new CaptureWindow(this);
+                CaptureOverlay.Show(this);
+            }else if(CaptureOverlay!=null && !anyAbortable) {
+                CaptureOverlay.Close();
+                CaptureOverlay = null;
+            }
+
+            if (nvRunning && !StreamingIsActive) {
                 DoLog("Stream start detected");
                 InfoState.Text = "Stream active";
                 DWidth.Enabled = false;
                 DHeight.Enabled = false;
                 DRefresh.Enabled = false;
                 useSecondScreenCB.Enabled = false;
+                ActionsScheduled.AddRange(ListOnConnect.Items.OfType<AutoAction>().Select(a => new AutoActionSchedule() { ScheduledAction = a, ScheduledDate = now.AddSeconds(a.Delay) }));
+                
                 if (UseSecondScreen) {
                     DoLog("Switching to external screen");
                     Process.Start(Switch, "/external");
@@ -222,14 +289,15 @@ namespace NVStreamer1080 {
                     SetResolution(DesiredWidth, DesiredHeight, DesiredRefresh);
                     label1.Text = $"NVStreamer active: {DesiredWidth}x{DesiredHeight}@{DesiredRefresh}";
                 }
-                nv1080Set = true;
-            } else if (!nvRunning && nv1080Set) {
+                StreamingIsActive = true;
+            } else if (!nvRunning && StreamingIsActive) {
                 DoLog("Stream end detected");
                 InfoState.Text = "Stream ended";
                 DWidth.Enabled = true;
                 DHeight.Enabled = true;
                 DRefresh.Enabled = true;
                 useSecondScreenCB.Enabled = true;
+                ActionsScheduled.AddRange(ListOnDisconnect.Items.OfType<AutoAction>().Select(a => new AutoActionSchedule() { ScheduledAction = a, ScheduledDate = now.AddSeconds(a.Delay) }));
                 if (UseSecondScreen) {
                     DoLog("Switching to internal screen");
                     Process.Start(Switch, "/internal");
@@ -237,32 +305,73 @@ namespace NVStreamer1080 {
                     DoLog($"Restoring resolution {initialWidth}x{initialHeight}@{initialRefresh}");
                     SetResolution(initialWidth, initialHeight, initialRefresh);
                 }
-                nv1080Set = false;
+                StreamingIsActive = false;
                 label1.Text = "NVStreamer not active";
                 useSecondScreenCB.Enabled = true;
             }
         }
 
         private void HideTimer_Tick(object sender, EventArgs e) {
-            ShowInTaskbar = false;
-            Visible = false;
             HideTimer.Enabled = false;
 
+            if (!Environment.GetCommandLineArgs().Where(a => a == "/NoAutoHide").Any()) {
+                ShowInTaskbar = false;
+                Visible = false;
+            }
         }
 
-        private void OnSecondScreenCheckboxChange(object sender, EventArgs e) {
-            if(UseSecondScreen != useSecondScreenCB.Checked)
-                UseSecondScreen = useSecondScreenCB.Checked;
-        }
 
-        private void Width_TextChanged(object sender, EventArgs e) {
+        private void SaveSettings(object sender, EventArgs e) {
             DesiredWidth = int.TryParse(DWidth.Text, out int w) ? w : 1920;
             DesiredHeight = int.TryParse(DHeight.Text, out int h) ? h : 1080;
             DesiredRefresh = int.TryParse(DRefresh.Text, out int r) ? r : 60;
+            UseSecondScreen = useSecondScreenCB.Checked;
+            RestoreAccelerationPrecision = CbAccelRestore.Checked;
         }
 
         private void DoLog(string message) {
             Log.Items.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message);
+        }
+
+
+        private void BtnConnectAdd_Click(object sender, EventArgs e) {
+            var action = new AutoAction();
+            ListOnConnect.Items.Add(action);
+            new ActionEdit(action).ShowDialog(this);
+            ListOnConnect.Items[ListOnConnect.Items.IndexOf(action)] = action;
+            StartActions = ListOnConnect.Items.OfType<AutoAction>().ToArray();
+        }
+
+        private void BtnDisconnectadd_Click(object sender, EventArgs e) {
+            var action = new AutoAction();
+            ListOnDisconnect.Items.Add(action);
+            new ActionEdit(action).ShowDialog(this);
+            ListOnDisconnect.Items[ListOnDisconnect.Items.IndexOf(action)] = action;
+            EndActions = ListOnDisconnect.Items.OfType<AutoAction>().ToArray();
+        }
+
+        private void BtnConnectEdit_Click(object sender, EventArgs e) {
+            var action = (AutoAction)ListOnConnect.SelectedItem;
+            new ActionEdit(action).ShowDialog(this);
+            ListOnConnect.Items[ListOnConnect.Items.IndexOf(action)] = action;
+            StartActions = ListOnConnect.Items.OfType<AutoAction>().ToArray();
+        }
+
+        private void BtnConnectDel_Click(object sender, EventArgs e) {
+            ListOnConnect.Items.Remove(ListOnConnect.SelectedItem);
+            StartActions = ListOnConnect.Items.OfType<AutoAction>().ToArray();
+        }
+
+        private void BtnDisconnectDel_Click(object sender, EventArgs e) {
+            ListOnDisconnect.Items.Remove(ListOnDisconnect.SelectedItem);
+            EndActions = ListOnDisconnect.Items.OfType<AutoAction>().ToArray();
+        }
+
+        private void BtnDisconnectEdit_Click(object sender, EventArgs e) {
+            var action = (AutoAction)ListOnDisconnect.SelectedItem;
+            new ActionEdit(action).ShowDialog(this);
+            ListOnDisconnect.Items[ListOnDisconnect.Items.IndexOf(action)] = action;
+            EndActions = ListOnDisconnect.Items.OfType<AutoAction>().ToArray();
         }
     }
 }
