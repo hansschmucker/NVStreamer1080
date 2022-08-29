@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -75,7 +76,7 @@ namespace NVStreamer1080 {
             });
         }
 
-        public void Execute() {
+        public string Execute() {
             switch (TargetAction) {
                 case ActionType.Open:
                     var p = new ProcessStartInfo() {
@@ -86,13 +87,15 @@ namespace NVStreamer1080 {
                     try {
                         System.Diagnostics.Process.Start(p);
                     } catch (Exception) { }
+                        return $"Launched {Path.GetFileNameWithoutExtension(Process)}";
                     break;
                 case ActionType.Close: {
                         var procs = System.Diagnostics.Process.GetProcesses().Where(a => a.ProcessName.ToLower() == Process.ToLower());
                         foreach (var proc in procs)
                             try {
-                                proc.Close();
+                                proc.CloseMainWindow();
                             } catch (Exception) { }
+                        return $"Closed {procs.Count()} {Process}";
                     }
                     break;
                 case ActionType.Kill: {
@@ -101,6 +104,8 @@ namespace NVStreamer1080 {
                             try {
                                 proc.Kill();
                             } catch (Exception) { }
+
+                        return $"Killed {procs.Count()} {Process}";
                     }
                     break;
                 case ActionType.Exit: {
@@ -109,17 +114,21 @@ namespace NVStreamer1080 {
                             try {
                                 proc.Close();
                             } catch (Exception) { }
+                        return "Exited NvStreamer";
                     }
                     break;
                 case ActionType.Standby: {
                         Application.SetSuspendState(PowerState.Suspend, true, true);
                     }
+                    return "Entering standby";
                     break;
                 case ActionType.Hibernate: {
                         Application.SetSuspendState(PowerState.Hibernate, true, true);
                     }
+                    return "Entering hibernation";
                     break;
             }
+            return "No action taken";
         }
     }
 }

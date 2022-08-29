@@ -34,10 +34,41 @@ namespace NVStreamer1080 {
         [DllImport("user32.dll")]
         public static extern int ChangeDisplaySettings(ref DispSet a, int b);
 
+        [Flags]
+        public enum SPIF {
+            None = 0x00,
+            SPIF_UPDATEINIFILE = 0x01,
+            SPIF_SENDCHANGE = 0x02,
+            SPIF_SENDWININICHANGE = 0x02
+        }
+
+        [DllImport("user32.dll", EntryPoint = "SystemParametersInfo", SetLastError = true)]
+        public static extern bool SystemParametersInfoGet(uint action, uint param, IntPtr vparam, SPIF fWinIni);
+        public const UInt32 SPI_GETMOUSE = 0x0003;
+        [DllImport("user32.dll", EntryPoint = "SystemParametersInfo", SetLastError = true)]
+        public static extern bool SystemParametersInfoSet(uint action, uint param, IntPtr vparam, SPIF fWinIni);
+        public const UInt32 SPI_SETMOUSE = 0x0004;
+
+        public bool IsPointerEnhanced() {
+            int[] mouseParams = new int[3];
+            SystemParametersInfoGet(SPI_GETMOUSE, 0, GCHandle.Alloc(mouseParams, GCHandleType.Pinned).AddrOfPinnedObject(), 0);
+            return mouseParams[0] == 1;
+        }
+
+        public void SetPointerEnhanced(bool v) {
+            int[] mouseParams = new int[3];
+            SystemParametersInfoGet(SPI_GETMOUSE, 0, GCHandle.Alloc(mouseParams, GCHandleType.Pinned).AddrOfPinnedObject(), 0);
+            mouseParams[2] = v ? 1 : 0;
+            SystemParametersInfoSet(SPI_SETMOUSE, 0, GCHandle.Alloc(mouseParams, GCHandleType.Pinned).AddrOfPinnedObject(), SPIF.SPIF_SENDCHANGE);
+        }
+
+
+
 
         private int initialWidth;
         private int initialHeight;
         private int initialRefresh;
+        private bool initialMousePrecise;
 
         private void InitRegistry() {
             if (Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true) == null)
@@ -147,6 +178,7 @@ namespace NVStreamer1080 {
             initialWidth = disp.width;
             initialHeight = disp.height;
             initialRefresh = disp.frequency;
+            initialMousePrecise = IsPointerEnhanced();
             InfoReturnParams.Text = initialWidth + "x" + initialHeight + "/" + initialRefresh;
 
 
@@ -195,13 +227,11 @@ namespace NVStreamer1080 {
                 return;
             }
 
-            if ((components != null)) {
+            if ((components != null))
                 components.Dispose();
-            }
 
-            if (isDisposing) {
+            if (isDisposing)
                 trayNotifyIcon.Dispose();
-            }
 
             if (StreamingIsActive) {
                 SetResolution(initialWidth, initialHeight, initialRefresh);
@@ -227,7 +257,6 @@ namespace NVStreamer1080 {
         private bool StreamingIsActive = false;
 
         private void SetResolution(int w, int h, int r) {
-
             var disp = new DispSet();
             if (EnumDisplaySettings(null, -1, ref disp) == 0)
                 return;
@@ -242,7 +271,7 @@ namespace NVStreamer1080 {
         public Form CaptureOverlay = null;
 
         public List<AutoActionSchedule> ActionsScheduled = new List<AutoActionSchedule>();
-        private void CheckTimer_Tick(object sender, EventArgs e) {
+        private void OnTick(object sender, EventArgs e) {
             var Switch = Path.Combine(Environment.SystemDirectory, "DisplaySwitch.exe");
             var nvStreamers = Process.GetProcesses().Where(a => a.ProcessName.ToLower() == "nvstreamer").ToList();
             var nvRunning = nvStreamers.Any();
@@ -252,7 +281,7 @@ namespace NVStreamer1080 {
             ActionsScheduled = ActionsScheduled.Where((a) => {
                 if (a.ScheduledDate < now) {
                     try {
-                        a.ScheduledAction.Execute();
+                        DoLog(a.ScheduledAction.Execute());
                     } catch (Exception ex) {
                         DoLog(ex.ToString());
                     }
@@ -306,12 +335,14 @@ namespace NVStreamer1080 {
                     SetResolution(initialWidth, initialHeight, initialRefresh);
                 }
                 StreamingIsActive = false;
+                if (RestoreAccelerationPrecision)
+                    SetPointerEnhanced(initialMousePrecise);
                 label1.Text = "NVStreamer not active";
                 useSecondScreenCB.Enabled = true;
             }
         }
 
-        private void HideTimer_Tick(object sender, EventArgs e) {
+        private void SilentLaunchAutoHide(object sender, EventArgs e) {
             HideTimer.Enabled = false;
 
             if (!Environment.GetCommandLineArgs().Where(a => a == "/NoAutoHide").Any()) {
@@ -334,7 +365,7 @@ namespace NVStreamer1080 {
         }
 
 
-        private void BtnConnectAdd_Click(object sender, EventArgs e) {
+        private void ConnectItemAdd(object sender, EventArgs e) {
             var action = new AutoAction();
             ListOnConnect.Items.Add(action);
             new ActionEdit(action).ShowDialog(this);
@@ -342,7 +373,7 @@ namespace NVStreamer1080 {
             StartActions = ListOnConnect.Items.OfType<AutoAction>().ToArray();
         }
 
-        private void BtnDisconnectadd_Click(object sender, EventArgs e) {
+        private void DisconnectItemAdd(object sender, EventArgs e) {
             var action = new AutoAction();
             ListOnDisconnect.Items.Add(action);
             new ActionEdit(action).ShowDialog(this);
@@ -350,24 +381,24 @@ namespace NVStreamer1080 {
             EndActions = ListOnDisconnect.Items.OfType<AutoAction>().ToArray();
         }
 
-        private void BtnConnectEdit_Click(object sender, EventArgs e) {
+        private void ConnectItemEdit(object sender, EventArgs e) {
             var action = (AutoAction)ListOnConnect.SelectedItem;
             new ActionEdit(action).ShowDialog(this);
             ListOnConnect.Items[ListOnConnect.Items.IndexOf(action)] = action;
             StartActions = ListOnConnect.Items.OfType<AutoAction>().ToArray();
         }
 
-        private void BtnConnectDel_Click(object sender, EventArgs e) {
+        private void ConnectItemDel(object sender, EventArgs e) {
             ListOnConnect.Items.Remove(ListOnConnect.SelectedItem);
             StartActions = ListOnConnect.Items.OfType<AutoAction>().ToArray();
         }
 
-        private void BtnDisconnectDel_Click(object sender, EventArgs e) {
+        private void DisconnectItemDel(object sender, EventArgs e) {
             ListOnDisconnect.Items.Remove(ListOnDisconnect.SelectedItem);
             EndActions = ListOnDisconnect.Items.OfType<AutoAction>().ToArray();
         }
 
-        private void BtnDisconnectEdit_Click(object sender, EventArgs e) {
+        private void DisconnectItemEdit(object sender, EventArgs e) {
             var action = (AutoAction)ListOnDisconnect.SelectedItem;
             new ActionEdit(action).ShowDialog(this);
             ListOnDisconnect.Items[ListOnDisconnect.Items.IndexOf(action)] = action;

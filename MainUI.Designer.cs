@@ -53,7 +53,7 @@ namespace NVStreamer1080
             // CheckTimer
             // 
             this.CheckTimer.Interval = 500;
-            this.CheckTimer.Tick += new System.EventHandler(this.CheckTimer_Tick);
+            this.CheckTimer.Tick += new System.EventHandler(this.OnTick);
             // 
             // label1
             // 
@@ -69,7 +69,7 @@ namespace NVStreamer1080
             // 
             this.HideTimer.Enabled = true;
             this.HideTimer.Interval = 3000;
-            this.HideTimer.Tick += new System.EventHandler(this.HideTimer_Tick);
+            this.HideTimer.Tick += new System.EventHandler(this.SilentLaunchAutoHide);
             // 
             // useSecondScreenCB
             // 
@@ -240,7 +240,7 @@ namespace NVStreamer1080
             this.BtnConnectAdd.TabIndex = 27;
             this.BtnConnectAdd.Text = "Add";
             this.BtnConnectAdd.UseVisualStyleBackColor = true;
-            this.BtnConnectAdd.Click += new System.EventHandler(this.BtnConnectAdd_Click);
+            this.BtnConnectAdd.Click += new System.EventHandler(this.ConnectItemAdd);
             // 
             // label9
             // 
@@ -268,7 +268,7 @@ namespace NVStreamer1080
             this.BtnConnectDel.TabIndex = 30;
             this.BtnConnectDel.Text = "Remove";
             this.BtnConnectDel.UseVisualStyleBackColor = true;
-            this.BtnConnectDel.Click += new System.EventHandler(this.BtnConnectDel_Click);
+            this.BtnConnectDel.Click += new System.EventHandler(this.ConnectItemDel);
             // 
             // BtnConnectEdit
             // 
@@ -278,7 +278,7 @@ namespace NVStreamer1080
             this.BtnConnectEdit.TabIndex = 31;
             this.BtnConnectEdit.Text = "Edit";
             this.BtnConnectEdit.UseVisualStyleBackColor = true;
-            this.BtnConnectEdit.Click += new System.EventHandler(this.BtnConnectEdit_Click);
+            this.BtnConnectEdit.Click += new System.EventHandler(this.ConnectItemEdit);
             // 
             // BtnDisconnectEdit
             // 
@@ -288,7 +288,7 @@ namespace NVStreamer1080
             this.BtnDisconnectEdit.TabIndex = 34;
             this.BtnDisconnectEdit.Text = "Edit";
             this.BtnDisconnectEdit.UseVisualStyleBackColor = true;
-            this.BtnDisconnectEdit.Click += new System.EventHandler(this.BtnDisconnectEdit_Click);
+            this.BtnDisconnectEdit.Click += new System.EventHandler(this.DisconnectItemEdit);
             // 
             // BtnDisconnectDel
             // 
@@ -298,7 +298,7 @@ namespace NVStreamer1080
             this.BtnDisconnectDel.TabIndex = 33;
             this.BtnDisconnectDel.Text = "Remove";
             this.BtnDisconnectDel.UseVisualStyleBackColor = true;
-            this.BtnDisconnectDel.Click += new System.EventHandler(this.BtnDisconnectDel_Click);
+            this.BtnDisconnectDel.Click += new System.EventHandler(this.DisconnectItemDel);
             // 
             // BtnDisconnectadd
             // 
@@ -308,7 +308,7 @@ namespace NVStreamer1080
             this.BtnDisconnectadd.TabIndex = 32;
             this.BtnDisconnectadd.Text = "Add";
             this.BtnDisconnectadd.UseVisualStyleBackColor = true;
-            this.BtnDisconnectadd.Click += new System.EventHandler(this.BtnDisconnectadd_Click);
+            this.BtnDisconnectadd.Click += new System.EventHandler(this.DisconnectItemAdd);
             // 
             // NVStreamerMainUI
             // 
