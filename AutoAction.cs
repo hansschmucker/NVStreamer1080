@@ -88,7 +88,6 @@ namespace NVStreamer1080 {
                         System.Diagnostics.Process.Start(p);
                     } catch (Exception) { }
                         return $"Launched {Path.GetFileNameWithoutExtension(Process)}";
-                    break;
                 case ActionType.Close: {
                         var procs = System.Diagnostics.Process.GetProcesses().Where(a => a.ProcessName.ToLower() == Process.ToLower());
                         foreach (var proc in procs)
@@ -97,7 +96,6 @@ namespace NVStreamer1080 {
                             } catch (Exception) { }
                         return $"Closed {procs.Count()} {Process}";
                     }
-                    break;
                 case ActionType.Kill: {
                         var procs = System.Diagnostics.Process.GetProcesses().Where(a => a.ProcessName.ToLower() == Process.ToLower());
                         foreach (var proc in procs)
@@ -107,7 +105,6 @@ namespace NVStreamer1080 {
 
                         return $"Killed {procs.Count()} {Process}";
                     }
-                    break;
                 case ActionType.Exit: {
                         var procs = System.Diagnostics.Process.GetProcesses().Where(a => a.ProcessName.ToLower() == "nvstreamer");
                         foreach (var proc in procs)
@@ -116,17 +113,14 @@ namespace NVStreamer1080 {
                             } catch (Exception) { }
                         return "Exited NvStreamer";
                     }
-                    break;
                 case ActionType.Standby: {
                         Application.SetSuspendState(PowerState.Suspend, true, true);
                     }
                     return "Entering standby";
-                    break;
                 case ActionType.Hibernate: {
                         Application.SetSuspendState(PowerState.Hibernate, true, true);
                     }
                     return "Entering hibernation";
-                    break;
             }
             return "No action taken";
         }

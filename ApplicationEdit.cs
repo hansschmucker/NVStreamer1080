@@ -16,7 +16,7 @@ namespace NVStreamer1080 {
             InitializeComponent();
         }
 
-        AutoAction Item;
+        readonly AutoAction Item;
         private void OnBrowse(object sender, EventArgs e) {
             var result=BrowseExe.ShowDialog(this);
             if(result == DialogResult.OK) {

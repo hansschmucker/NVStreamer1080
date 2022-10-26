@@ -48,6 +48,11 @@ namespace NVStreamer1080
             this.BtnDisconnectEdit = new System.Windows.Forms.Button();
             this.BtnDisconnectDel = new System.Windows.Forms.Button();
             this.BtnDisconnectadd = new System.Windows.Forms.Button();
+            this.label8 = new System.Windows.Forms.Label();
+            this.SRefresh = new System.Windows.Forms.TextBox();
+            this.SHeight = new System.Windows.Forms.TextBox();
+            this.SWidth = new System.Windows.Forms.TextBox();
+            this.cbOverrideReturnRes = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // CheckTimer
@@ -85,21 +90,21 @@ namespace NVStreamer1080
             // 
             // DWidth
             // 
-            this.DWidth.Location = new System.Drawing.Point(18, 140);
+            this.DWidth.Location = new System.Drawing.Point(18, 114);
             this.DWidth.Name = "DWidth";
             this.DWidth.Size = new System.Drawing.Size(100, 26);
             this.DWidth.TabIndex = 2;
             // 
             // DHeight
             // 
-            this.DHeight.Location = new System.Drawing.Point(124, 140);
+            this.DHeight.Location = new System.Drawing.Point(124, 114);
             this.DHeight.Name = "DHeight";
             this.DHeight.Size = new System.Drawing.Size(100, 26);
             this.DHeight.TabIndex = 3;
             // 
             // DRefresh
             // 
-            this.DRefresh.Location = new System.Drawing.Point(230, 140);
+            this.DRefresh.Location = new System.Drawing.Point(230, 114);
             this.DRefresh.Name = "DRefresh";
             this.DRefresh.Size = new System.Drawing.Size(100, 26);
             this.DRefresh.TabIndex = 4;
@@ -107,7 +112,7 @@ namespace NVStreamer1080
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(18, 97);
+            this.label2.Location = new System.Drawing.Point(18, 71);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(253, 40);
             this.label2.TabIndex = 5;
@@ -116,7 +121,7 @@ namespace NVStreamer1080
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(15, 188);
+            this.label3.Location = new System.Drawing.Point(15, 245);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(90, 20);
             this.label3.TabIndex = 6;
@@ -125,7 +130,7 @@ namespace NVStreamer1080
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(25, 208);
+            this.label4.Location = new System.Drawing.Point(25, 265);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(53, 20);
             this.label4.TabIndex = 7;
@@ -134,7 +139,7 @@ namespace NVStreamer1080
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(25, 228);
+            this.label5.Location = new System.Drawing.Point(25, 285);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(52, 20);
             this.label5.TabIndex = 8;
@@ -143,7 +148,7 @@ namespace NVStreamer1080
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(25, 248);
+            this.label6.Location = new System.Drawing.Point(25, 305);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(117, 20);
             this.label6.TabIndex = 9;
@@ -152,16 +157,16 @@ namespace NVStreamer1080
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(25, 268);
+            this.label7.Location = new System.Drawing.Point(25, 325);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(120, 20);
             this.label7.TabIndex = 10;
-            this.label7.Text = "Return Params:";
+            this.label7.Text = "Startup Res:";
             // 
             // InfoReturnParams
             // 
             this.InfoReturnParams.AutoSize = true;
-            this.InfoReturnParams.Location = new System.Drawing.Point(168, 268);
+            this.InfoReturnParams.Location = new System.Drawing.Point(168, 325);
             this.InfoReturnParams.Name = "InfoReturnParams";
             this.InfoReturnParams.Size = new System.Drawing.Size(14, 20);
             this.InfoReturnParams.TabIndex = 14;
@@ -170,7 +175,7 @@ namespace NVStreamer1080
             // InfoTargetParams
             // 
             this.InfoTargetParams.AutoSize = true;
-            this.InfoTargetParams.Location = new System.Drawing.Point(168, 248);
+            this.InfoTargetParams.Location = new System.Drawing.Point(168, 305);
             this.InfoTargetParams.Name = "InfoTargetParams";
             this.InfoTargetParams.Size = new System.Drawing.Size(14, 20);
             this.InfoTargetParams.TabIndex = 13;
@@ -179,7 +184,7 @@ namespace NVStreamer1080
             // InfoState
             // 
             this.InfoState.AutoSize = true;
-            this.InfoState.Location = new System.Drawing.Point(168, 228);
+            this.InfoState.Location = new System.Drawing.Point(168, 285);
             this.InfoState.Name = "InfoState";
             this.InfoState.Size = new System.Drawing.Size(110, 20);
             this.InfoState.TabIndex = 12;
@@ -188,7 +193,7 @@ namespace NVStreamer1080
             // InfoMode
             // 
             this.InfoMode.AutoSize = true;
-            this.InfoMode.Location = new System.Drawing.Point(168, 208);
+            this.InfoMode.Location = new System.Drawing.Point(168, 265);
             this.InfoMode.Name = "InfoMode";
             this.InfoMode.Size = new System.Drawing.Size(14, 20);
             this.InfoMode.TabIndex = 11;
@@ -212,6 +217,7 @@ namespace NVStreamer1080
             this.CbAccelRestore.TabIndex = 23;
             this.CbAccelRestore.Text = "Restore mouse acceleration\r\nprecision after stream end";
             this.CbAccelRestore.UseVisualStyleBackColor = true;
+            this.CbAccelRestore.Visible = false;
             this.CbAccelRestore.CheckedChanged += new System.EventHandler(this.SaveSettings);
             // 
             // ListOnConnect
@@ -310,11 +316,58 @@ namespace NVStreamer1080
             this.BtnDisconnectadd.UseVisualStyleBackColor = true;
             this.BtnDisconnectadd.Click += new System.EventHandler(this.DisconnectItemAdd);
             // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(18, 192);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(253, 20);
+            this.label8.TabIndex = 38;
+            this.label8.Text = "                 (only if switch is disabled)";
+            // 
+            // SRefresh
+            // 
+            this.SRefresh.Location = new System.Drawing.Point(230, 215);
+            this.SRefresh.Name = "SRefresh";
+            this.SRefresh.Size = new System.Drawing.Size(100, 26);
+            this.SRefresh.TabIndex = 37;
+            // 
+            // SHeight
+            // 
+            this.SHeight.Location = new System.Drawing.Point(124, 215);
+            this.SHeight.Name = "SHeight";
+            this.SHeight.Size = new System.Drawing.Size(100, 26);
+            this.SHeight.TabIndex = 36;
+            // 
+            // SWidth
+            // 
+            this.SWidth.Location = new System.Drawing.Point(18, 215);
+            this.SWidth.Name = "SWidth";
+            this.SWidth.Size = new System.Drawing.Size(100, 26);
+            this.SWidth.TabIndex = 35;
+            // 
+            // cbOverrideReturnRes
+            // 
+            this.cbOverrideReturnRes.AutoSize = true;
+            this.cbOverrideReturnRes.Location = new System.Drawing.Point(18, 168);
+            this.cbOverrideReturnRes.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.cbOverrideReturnRes.Name = "cbOverrideReturnRes";
+            this.cbOverrideReturnRes.Size = new System.Drawing.Size(280, 24);
+            this.cbOverrideReturnRes.TabIndex = 39;
+            this.cbOverrideReturnRes.Text = "Override detected return resolution";
+            this.cbOverrideReturnRes.UseVisualStyleBackColor = true;
+            this.cbOverrideReturnRes.CheckedChanged += new System.EventHandler(this.OnOverrideReturnChange);
+            // 
             // NVStreamerMainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(737, 594);
+            this.Controls.Add(this.cbOverrideReturnRes);
+            this.Controls.Add(this.label8);
+            this.Controls.Add(this.SRefresh);
+            this.Controls.Add(this.SHeight);
+            this.Controls.Add(this.SWidth);
             this.Controls.Add(this.BtnDisconnectEdit);
             this.Controls.Add(this.BtnDisconnectDel);
             this.Controls.Add(this.BtnDisconnectadd);
@@ -383,6 +436,11 @@ namespace NVStreamer1080
         private System.Windows.Forms.Button BtnDisconnectEdit;
         private System.Windows.Forms.Button BtnDisconnectDel;
         private System.Windows.Forms.Button BtnDisconnectadd;
+        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.TextBox SRefresh;
+        private System.Windows.Forms.TextBox SHeight;
+        private System.Windows.Forms.TextBox SWidth;
+        private System.Windows.Forms.CheckBox cbOverrideReturnRes;
     }
 }
 

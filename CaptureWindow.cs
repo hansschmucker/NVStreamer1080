@@ -11,7 +11,7 @@ namespace NVStreamer1080 {
             InitializeComponent();
         }
 
-        NVStreamerMainUI MainUI;
+        readonly NVStreamerMainUI MainUI;
         private void CaptureWindow_KeyDown(object sender, KeyEventArgs e) {
             InputDetected();
         }

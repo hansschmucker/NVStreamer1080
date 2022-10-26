@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
+using System.Security.Principal;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
@@ -21,10 +22,10 @@ namespace NVStreamer1080 {
         [StructLayout(LayoutKind.Sequential)]
         public struct DispSet {
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 106)]
-            byte[] padding0;
+            readonly byte[] padding0;
             public int width, height, dummy, frequency;
             [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
-            byte[] padding1;
+            readonly byte[] padding1;
         };
 
 
@@ -65,9 +66,9 @@ namespace NVStreamer1080 {
 
 
 
-        private int initialWidth;
-        private int initialHeight;
-        private int initialRefresh;
+        private int detectedWidth;
+        private int detectedHeight;
+        private int detectedRefresh;
         private bool initialMousePrecise;
 
         private void InitRegistry() {
@@ -128,7 +129,79 @@ namespace NVStreamer1080 {
             }
         }
 
-        private JavaScriptSerializer JSON = new JavaScriptSerializer() {
+
+
+
+
+
+
+
+
+        private bool OverrideReturnResolution {
+            get {
+                var v = ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("OverrideReturnResolution", "0")) == "1";
+                return v;
+            }
+            set {
+                if (cbOverrideReturnRes.Checked != value)
+                    cbOverrideReturnRes.Checked = value;
+
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("OverrideReturnResolution", value ? "1" : "0", RegistryValueKind.String);
+            }
+        }
+
+        private int ReturnWidth {
+            get {
+                if (OverrideReturnResolution) {
+                    var v = ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("ReturnWidth", 1920));
+                    return v;
+                } else {
+                    return detectedWidth;
+                }
+            }
+            set {
+                if (SWidth.Text != value.ToString())
+                    SWidth.Text = value.ToString();
+
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("ReturnWidth", value, RegistryValueKind.DWord);
+            }
+        }
+
+        private int ReturnHeight {
+            get {
+                if (OverrideReturnResolution) {
+                    var v = ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("ReturnHeight", 1080));
+                    return v;
+                } else {
+                    return detectedHeight;
+                }
+            }
+            set {
+                if (SHeight.Text != value.ToString())
+                    SHeight.Text = value.ToString();
+
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("ReturnHeight", value, RegistryValueKind.DWord);
+            }
+        }
+
+        private int ReturnRefresh {
+            get {
+                if (OverrideReturnResolution) {
+                    var v = ((int)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("ReturnRefresh", 60));
+                    return v;
+                } else {
+                    return detectedRefresh;
+                }
+            }
+            set {
+                if (SRefresh.Text != value.ToString())
+                    SRefresh.Text = value.ToString();
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("ReturnRefresh", value, RegistryValueKind.DWord);
+
+            }
+        }
+
+        private readonly JavaScriptSerializer JSON = new JavaScriptSerializer() {
             MaxJsonLength = int.MaxValue
         };
 
@@ -163,6 +236,14 @@ namespace NVStreamer1080 {
 
         NotifyIcon trayNotifyIcon;
         private void NVStreamerMainUI_Load(object sender, EventArgs e) {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent()) {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                var isElevated = principal.IsInRole(WindowsBuiltInRole.Administrator);
+                if (isElevated) {
+                    CbAccelRestore.Visible = true;
+                }
+            }
+
             InitRegistry();
             Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true).SetValue("NVStreamer1080", Application.ExecutablePath);
 
@@ -175,11 +256,11 @@ namespace NVStreamer1080 {
 
             ListOnConnect.Items.AddRange(StartActions);
             ListOnDisconnect.Items.AddRange(EndActions);
-            initialWidth = disp.width;
-            initialHeight = disp.height;
-            initialRefresh = disp.frequency;
+            detectedWidth = disp.width;
+            detectedHeight = disp.height;
+            detectedRefresh = disp.frequency;
             initialMousePrecise = IsPointerEnhanced();
-            InfoReturnParams.Text = initialWidth + "x" + initialHeight + "/" + initialRefresh;
+            InfoReturnParams.Text = detectedWidth + "x" + detectedHeight + "/" + detectedRefresh;
 
 
             var trayContextMenu = new ContextMenu();
@@ -193,16 +274,31 @@ namespace NVStreamer1080 {
             DWidth.Text = DesiredWidth.ToString();
             DHeight.Text = DesiredHeight.ToString();
             DRefresh.Text = DesiredRefresh.ToString();
+            ReturnWidth = ReturnWidth;
+            ReturnHeight = ReturnHeight;
+            ReturnRefresh = ReturnRefresh;
+            SWidth.Text = ReturnWidth.ToString();
+            SHeight.Text = ReturnHeight.ToString();
+            SRefresh.Text = ReturnRefresh.ToString();
+
             CbAccelRestore.Checked = RestoreAccelerationPrecision;
+            cbOverrideReturnRes.Checked = OverrideReturnResolution;
+            OnOverrideReturnChange(null, null);
 
             this.DWidth.TextChanged += new System.EventHandler(this.SaveSettings);
             this.DHeight.TextChanged += new System.EventHandler(this.SaveSettings);
             this.DRefresh.TextChanged += new System.EventHandler(this.SaveSettings);
             this.CbAccelRestore.CheckedChanged += new System.EventHandler(this.SaveSettings);
+            this.SWidth.TextChanged += new System.EventHandler(this.SaveSettings);
+            this.SHeight.TextChanged += new System.EventHandler(this.SaveSettings);
+            this.SRefresh.TextChanged += new System.EventHandler(this.SaveSettings);
+
+
 
             DesiredWidth = DesiredWidth;
             DesiredHeight = DesiredHeight;
             DesiredRefresh = DesiredRefresh;
+
 
             UseSecondScreen = useSecondScreenCB.Checked = UseSecondScreen;
 
@@ -234,7 +330,7 @@ namespace NVStreamer1080 {
                 trayNotifyIcon.Dispose();
 
             if (StreamingIsActive) {
-                SetResolution(initialWidth, initialHeight, initialRefresh);
+                SetResolution(ReturnWidth, ReturnHeight, ReturnRefresh);
                 StreamingIsActive = false;
             }
 
@@ -331,8 +427,8 @@ namespace NVStreamer1080 {
                     DoLog("Switching to internal screen");
                     Process.Start(Switch, "/internal");
                 } else {
-                    DoLog($"Restoring resolution {initialWidth}x{initialHeight}@{initialRefresh}");
-                    SetResolution(initialWidth, initialHeight, initialRefresh);
+                    DoLog($"Restoring resolution {ReturnWidth}x{ReturnHeight}@{ReturnRefresh}");
+                    SetResolution(ReturnWidth, ReturnHeight, ReturnRefresh);
                 }
                 StreamingIsActive = false;
                 if (RestoreAccelerationPrecision)
@@ -356,6 +452,9 @@ namespace NVStreamer1080 {
             DesiredWidth = int.TryParse(DWidth.Text, out int w) ? w : 1920;
             DesiredHeight = int.TryParse(DHeight.Text, out int h) ? h : 1080;
             DesiredRefresh = int.TryParse(DRefresh.Text, out int r) ? r : 60;
+            ReturnWidth = int.TryParse(SWidth.Text, out int rw) ? rw : 1920;
+            ReturnHeight = int.TryParse(SHeight.Text, out int rh) ? rh : 1080;
+            ReturnRefresh = int.TryParse(SRefresh.Text, out int rr) ? rr : 60;
             UseSecondScreen = useSecondScreenCB.Checked;
             RestoreAccelerationPrecision = CbAccelRestore.Checked;
         }
@@ -403,6 +502,19 @@ namespace NVStreamer1080 {
             new ActionEdit(action).ShowDialog(this);
             ListOnDisconnect.Items[ListOnDisconnect.Items.IndexOf(action)] = action;
             EndActions = ListOnDisconnect.Items.OfType<AutoAction>().ToArray();
+        }
+
+        private void OnOverrideReturnChange(object sender, EventArgs e) {
+            if (cbOverrideReturnRes.Checked) {
+                SWidth.Enabled = true;
+                SHeight.Enabled = true;
+                SRefresh.Enabled = true;
+            } else {
+                SWidth.Enabled = false;
+                SHeight.Enabled = false;
+                SRefresh.Enabled = false;
+            }
+            OverrideReturnResolution = cbOverrideReturnRes.Checked;
         }
     }
 }

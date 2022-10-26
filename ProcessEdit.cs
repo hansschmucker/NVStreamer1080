@@ -12,7 +12,7 @@ namespace NVStreamer1080 {
             RefreshProcs_Click(null, null);
         }
 
-        AutoAction Item = null;
+        readonly AutoAction Item = null;
 
         private void BtnConfirm_Click(object sender, EventArgs e) {
             Close();
