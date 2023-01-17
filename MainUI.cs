@@ -7,9 +7,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.ServiceProcess;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
 
@@ -84,6 +86,18 @@ namespace NVStreamer1080 {
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("UseSecondScreen", value ? "1" : "0", RegistryValueKind.String);
 
                 InfoMode.Text = value ? "Switch screen" : "Change resolution";
+            }
+        }
+
+        private string SunshinePath {
+            get {
+                return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("SunshinePath", ""));
+            }
+            set {
+                if (InSunshinePath.Text == value)
+                    return;
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("SunshinePath", value, RegistryValueKind.String);
+                InSunshinePath.Text = value;
             }
         }
 
@@ -235,12 +249,16 @@ namespace NVStreamer1080 {
         }
 
         NotifyIcon trayNotifyIcon;
+        public bool isElevated = false;
         private void NVStreamerMainUI_Load(object sender, EventArgs e) {
             using (WindowsIdentity identity = WindowsIdentity.GetCurrent()) {
                 WindowsPrincipal principal = new WindowsPrincipal(identity);
-                var isElevated = principal.IsInRole(WindowsBuiltInRole.Administrator);
+                isElevated = principal.IsInRole(WindowsBuiltInRole.Administrator);
                 if (isElevated) {
                     CbAccelRestore.Visible = true;
+                    BtnSunshineBrowse.Visible = true;
+                    InSunshinePath.Visible = true;
+                    SunshineInfo.Text = "Path to Sunshine (leave empty for NVidia GameStream)";
                 }
             }
 
@@ -280,6 +298,7 @@ namespace NVStreamer1080 {
             SWidth.Text = ReturnWidth.ToString();
             SHeight.Text = ReturnHeight.ToString();
             SRefresh.Text = ReturnRefresh.ToString();
+            InSunshinePath.Text = SunshinePath;
 
             CbAccelRestore.Checked = RestoreAccelerationPrecision;
             cbOverrideReturnRes.Checked = OverrideReturnResolution;
@@ -309,7 +328,6 @@ namespace NVStreamer1080 {
             trayNotifyIcon.ContextMenu = trayContextMenu;
             trayNotifyIcon.Visible = true;
             CheckTimer.Enabled = true;
-
         }
 
 
@@ -367,10 +385,12 @@ namespace NVStreamer1080 {
         public Form CaptureOverlay = null;
 
         public List<AutoActionSchedule> ActionsScheduled = new List<AutoActionSchedule>();
+
+        public bool SunshineIsClientConnected = false;
         private void OnTick(object sender, EventArgs e) {
             var Switch = Path.Combine(Environment.SystemDirectory, "DisplaySwitch.exe");
             var nvStreamers = Process.GetProcesses().Where(a => a.ProcessName.ToLower() == "nvstreamer").ToList();
-            var nvRunning = nvStreamers.Any();
+            var nvRunning = nvStreamers.Any() || SunshineIsClientConnected;
             var nvPids = nvStreamers.Select(a => a.Id);
             var now = DateTime.Now;
 
@@ -457,10 +477,13 @@ namespace NVStreamer1080 {
             ReturnRefresh = int.TryParse(SRefresh.Text, out int rr) ? rr : 60;
             UseSecondScreen = useSecondScreenCB.Checked;
             RestoreAccelerationPrecision = CbAccelRestore.Checked;
+            SunshinePath = InSunshinePath.Text;
         }
 
         private void DoLog(string message) {
-            Log.Items.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message);
+            Invoke(new Action(() => {
+                Log.Items.Add(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message);
+            }));
         }
 
 
@@ -515,6 +538,88 @@ namespace NVStreamer1080 {
                 SRefresh.Enabled = false;
             }
             OverrideReturnResolution = cbOverrideReturnRes.Checked;
+        }
+
+
+        private void SunshineInit() {
+
+
+            // Stop sunshinesvc if running
+            try {
+                ServiceController service = new ServiceController("sunshinesvc");
+                if (service.Status == ServiceControllerStatus.Running) {
+                    service.Stop();
+                    DoLog("SunshineService stopped");
+                }
+                
+                do {
+                    // wait 1s+ for it to wind down
+                    Thread.Sleep(1000);
+                } while (service.Status != ServiceControllerStatus.Stopped);
+
+            } catch (Exception) {
+                //Non fatal because service a non-existant service is as good as a stopped one
+            }
+
+
+
+            // kill any remaining sunshines
+            foreach (var proc in Process.GetProcesses().Where(a => a.ProcessName == "sunshine")) {
+                try {
+                    proc.Kill();
+                    DoLog("Sunshine stopped");
+                } catch (Exception) {
+                    DoLog("Could not stop existing Sunshine process. Make sure you run this as admin.");
+                }
+            }
+
+
+            // if no path return
+            if (String.IsNullOrWhiteSpace(SunshinePath))
+                return;
+
+            if (!isElevated) {
+                DoLog("Run as admin for Sunshine support.");
+            } else {
+                // wait 1s
+                Thread.Sleep(1000);
+
+                // spin up internal sunshine
+                var newProc = new ProcessStartInfo(SunshinePath) { CreateNoWindow = true, UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(SunshinePath) };
+                newProc.RedirectStandardOutput = true;
+                newProc.RedirectStandardError = true;
+                var newProcInst = Process.Start(newProc);
+                newProcInst.OutputDataReceived += OnSunshineStdout;
+                newProcInst.ErrorDataReceived += OnSunshineStdout;
+                newProcInst.BeginOutputReadLine();
+                newProcInst.BeginErrorReadLine();
+                DoLog("Sunshine started");
+            }
+        }
+
+        Regex RxSunshineDetectState = new Regex("(CLIENT CONNECTED|CLIENT DISCONNECTED)", RegexOptions.Compiled);
+        private void OnSunshineStdout(object sender, DataReceivedEventArgs e) {
+            if (String.IsNullOrEmpty(e.Data))
+                return;
+
+            var states=RxSunshineDetectState.Matches(e.Data);
+            for (var i = 0; i < states.Count; i++) {
+                SunshineIsClientConnected = states[i].Value == "CLIENT CONNECTED";
+                DoLog("Sunshine is " +(SunshineIsClientConnected?"active":"inactive") );
+            }
+        }
+
+        private void OnSunshinePathClick(object sender, EventArgs e) {
+            var ok = BrowseSunshinePath.ShowDialog(this);
+            if (ok == DialogResult.OK)
+                SunshinePath = BrowseSunshinePath.FileName;
+            else
+                SunshinePath = "";
+        }
+
+        private void OnInpSunshineChange(object sender, EventArgs e) {
+            SunshinePath=InSunshinePath.Text;
+            SunshineInit();
         }
     }
 }
