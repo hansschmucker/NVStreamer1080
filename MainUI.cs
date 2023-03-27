@@ -78,14 +78,31 @@ namespace NVStreamer1080 {
                 Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
         }
 
-        private bool UseSecondScreen {
-            get {
+        private bool UseSecondScreen
+        {
+            get
+            {
                 return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("UseSecondScreen", "0")) == "1";
             }
-            set {
+            set
+            {
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("UseSecondScreen", value ? "1" : "0", RegistryValueKind.String);
 
                 InfoMode.Text = value ? "Switch screen" : "Change resolution";
+            }
+        }
+
+        private bool InvertMonitorPriority
+        {
+            get
+            {
+                return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("InvertMonitorPriority", "0")) == "1";
+            }
+            set
+            {
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("InvertMonitorPriority", value ? "1" : "0", RegistryValueKind.String);
+
+                InfoMode.Text = value ? "Switch screen (Inverted)" : "Change resolution";
             }
         }
 
@@ -320,6 +337,7 @@ namespace NVStreamer1080 {
 
 
             UseSecondScreen = useSecondScreenCB.Checked = UseSecondScreen;
+            InvertMonitorPriority = invertMonitorPriorityCB.Checked = InvertMonitorPriority;
 
             trayNotifyIcon.Icon = trayIcon;
             trayNotifyIcon.Text = "NV Streamer 1080";
@@ -423,12 +441,14 @@ namespace NVStreamer1080 {
                 DHeight.Enabled = false;
                 DRefresh.Enabled = false;
                 useSecondScreenCB.Enabled = false;
+                invertMonitorPriorityCB.Enabled = false;
                 ActionsScheduled.AddRange(ListOnConnect.Items.OfType<AutoAction>().Select(a => new AutoActionSchedule() { ScheduledAction = a, ScheduledDate = now.AddSeconds(a.Delay) }));
                 
                 if (UseSecondScreen) {
-                    DoLog("Switching to external screen");
-                    Process.Start(Switch, "/external");
-                    label1.Text = "NVStreamer active: External";
+                    var monitor = InvertMonitorPriority ? "internal" : "external";
+                    DoLog($"Switching to {monitor} screen");
+                    var proc = Process.Start(Switch, $"/{monitor}");
+                    label1.Text = $"NVStreamer active: {monitor}";
                 } else {
                     DoLog($"Setting target resolution {DesiredWidth}x{DesiredHeight}@{DesiredRefresh}");
                     SetResolution(DesiredWidth, DesiredHeight, DesiredRefresh);
@@ -442,10 +462,13 @@ namespace NVStreamer1080 {
                 DHeight.Enabled = true;
                 DRefresh.Enabled = true;
                 useSecondScreenCB.Enabled = true;
+                invertMonitorPriorityCB.Enabled = true;
                 ActionsScheduled.AddRange(ListOnDisconnect.Items.OfType<AutoAction>().Select(a => new AutoActionSchedule() { ScheduledAction = a, ScheduledDate = now.AddSeconds(a.Delay) }));
-                if (UseSecondScreen) {
-                    DoLog("Switching to internal screen");
-                    Process.Start(Switch, "/internal");
+                if (UseSecondScreen)
+                {
+                    var monitor = InvertMonitorPriority ? "external" : "internal";
+                    DoLog($"Switching to {monitor} screen");
+                    Process.Start(Switch, $"/{monitor}");
                 } else {
                     DoLog($"Restoring resolution {ReturnWidth}x{ReturnHeight}@{ReturnRefresh}");
                     SetResolution(ReturnWidth, ReturnHeight, ReturnRefresh);
@@ -454,7 +477,6 @@ namespace NVStreamer1080 {
                 if (RestoreAccelerationPrecision)
                     SetPointerEnhanced(initialMousePrecise);
                 label1.Text = "NVStreamer not active";
-                useSecondScreenCB.Enabled = true;
             }
         }
 
@@ -476,6 +498,7 @@ namespace NVStreamer1080 {
             ReturnHeight = int.TryParse(SHeight.Text, out int rh) ? rh : 1080;
             ReturnRefresh = int.TryParse(SRefresh.Text, out int rr) ? rr : 60;
             UseSecondScreen = useSecondScreenCB.Checked;
+            InvertMonitorPriority = invertMonitorPriorityCB.Checked;
             RestoreAccelerationPrecision = CbAccelRestore.Checked;
             SunshinePath = InSunshinePath.Text;
         }
