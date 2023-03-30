@@ -14,6 +14,10 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
+using CCD;
+using CCD.Enum;
+using CCD.Struct;
+
 
 namespace NVStreamer1080 {
     public partial class NVStreamerMainUI : Form {
@@ -65,9 +69,6 @@ namespace NVStreamer1080 {
             SystemParametersInfoSet(SPI_SETMOUSE, 0, GCHandle.Alloc(mouseParams, GCHandleType.Pinned).AddrOfPinnedObject(), SPIF.SPIF_SENDCHANGE);
         }
 
-
-
-
         private int detectedWidth;
         private int detectedHeight;
         private int detectedRefresh;
@@ -78,14 +79,29 @@ namespace NVStreamer1080 {
                 Registry.CurrentUser.CreateSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true);
         }
 
-        private bool UseSecondScreen {
-            get {
-                return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("UseSecondScreen", "0")) == "1";
+        private string SelectedMonitorName
+        {
+            get
+            {
+                return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("SelectedMonitorName", monitorSelectionList.Items.Cast<Monitor>().First().DisplayName ));
             }
-            set {
-                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("UseSecondScreen", value ? "1" : "0", RegistryValueKind.String);
+            set
+            {
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("SelectedMonitorName", value, RegistryValueKind.String);
+            }
+        }
 
-                InfoMode.Text = value ? "Switch screen" : "Change resolution";
+        private bool InvertMonitorPriority
+        {
+            get
+            {
+                return ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("InvertMonitorPriority", "0")) == "1";
+            }
+            set
+            {
+                Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("InvertMonitorPriority", value ? "1" : "0", RegistryValueKind.String);
+
+                InfoMode.Text = value ? "Switch screen (Inverted)" : "Change resolution";
             }
         }
 
@@ -143,23 +159,12 @@ namespace NVStreamer1080 {
             }
         }
 
-
-
-
-
-
-
-
-
         private bool OverrideReturnResolution {
             get {
                 var v = ((string)Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).GetValue("OverrideReturnResolution", "0")) == "1";
                 return v;
             }
             set {
-                if (cbOverrideReturnRes.Checked != value)
-                    cbOverrideReturnRes.Checked = value;
-
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("OverrideReturnResolution", value ? "1" : "0", RegistryValueKind.String);
             }
         }
@@ -174,9 +179,6 @@ namespace NVStreamer1080 {
                 }
             }
             set {
-                if (SWidth.Text != value.ToString())
-                    SWidth.Text = value.ToString();
-
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("ReturnWidth", value, RegistryValueKind.DWord);
             }
         }
@@ -191,9 +193,6 @@ namespace NVStreamer1080 {
                 }
             }
             set {
-                if (SHeight.Text != value.ToString())
-                    SHeight.Text = value.ToString();
-
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("ReturnHeight", value, RegistryValueKind.DWord);
             }
         }
@@ -208,8 +207,6 @@ namespace NVStreamer1080 {
                 }
             }
             set {
-                if (SRefresh.Text != value.ToString())
-                    SRefresh.Text = value.ToString();
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("ReturnRefresh", value, RegistryValueKind.DWord);
 
             }
@@ -271,6 +268,8 @@ namespace NVStreamer1080 {
                 return;
             }
 
+            monitorSelectionList.Items.AddRange(fetchMonitorList().ToArray());
+            monitorSelectionList.SelectedItem = monitorSelectionList.Items.Cast<Monitor>().First(monitor => monitor.DisplayName == SelectedMonitorName);
 
             ListOnConnect.Items.AddRange(StartActions);
             ListOnDisconnect.Items.AddRange(EndActions);
@@ -295,32 +294,15 @@ namespace NVStreamer1080 {
             ReturnWidth = ReturnWidth;
             ReturnHeight = ReturnHeight;
             ReturnRefresh = ReturnRefresh;
-            SWidth.Text = ReturnWidth.ToString();
-            SHeight.Text = ReturnHeight.ToString();
-            SRefresh.Text = ReturnRefresh.ToString();
             InSunshinePath.Text = SunshinePath;
 
             CbAccelRestore.Checked = RestoreAccelerationPrecision;
-            cbOverrideReturnRes.Checked = OverrideReturnResolution;
-            OnOverrideReturnChange(null, null);
 
             this.DWidth.TextChanged += new System.EventHandler(this.SaveSettings);
             this.DHeight.TextChanged += new System.EventHandler(this.SaveSettings);
             this.DRefresh.TextChanged += new System.EventHandler(this.SaveSettings);
             this.CbAccelRestore.CheckedChanged += new System.EventHandler(this.SaveSettings);
-            this.SWidth.TextChanged += new System.EventHandler(this.SaveSettings);
-            this.SHeight.TextChanged += new System.EventHandler(this.SaveSettings);
-            this.SRefresh.TextChanged += new System.EventHandler(this.SaveSettings);
-
-
-
-            DesiredWidth = DesiredWidth;
-            DesiredHeight = DesiredHeight;
-            DesiredRefresh = DesiredRefresh;
-
-
-            UseSecondScreen = useSecondScreenCB.Checked = UseSecondScreen;
-
+                        
             trayNotifyIcon.Icon = trayIcon;
             trayNotifyIcon.Text = "NV Streamer 1080";
             trayNotifyIcon.Click += OnShow;
@@ -330,7 +312,68 @@ namespace NVStreamer1080 {
             CheckTimer.Enabled = true;
         }
 
+        private DisplayConfigTopologyId fetchTopologyCurrent() {
+            DisplayConfigTopologyId topologyFlag;
+            int pathSize;
+            int modeSize;
+            var queryFlag = QueryDisplayFlags.DatabaseCurrent;
+            var status = Wrapper.GetDisplayConfigBufferSizes(
+                queryFlag,
+                out pathSize,
+                out modeSize);
+            var pathInfoArray = new DisplayConfigPathInfo[pathSize];
+            var modeInfoArray = new DisplayConfigModeInfo[modeSize];
+            var res = Wrapper.QueryDisplayConfig(queryFlag, ref pathSize, pathInfoArray, ref modeSize, modeInfoArray, out topologyFlag);
+            return topologyFlag;
+        }
+        
 
+        private List<Monitor> fetchMonitorList()
+        {
+            var monitors = new List<Monitor>();
+
+            int numPathArrayElements;
+            int numModeInfoArrayElements;
+            var queryFlag = QueryDisplayFlags.AllPaths;
+            var status = Wrapper.GetDisplayConfigBufferSizes(
+                queryFlag,
+                out numPathArrayElements,
+                out numModeInfoArrayElements);
+            var pathInfoArray = new DisplayConfigPathInfo[numPathArrayElements];
+            var modeInfoArray = new DisplayConfigModeInfo[numModeInfoArrayElements];
+
+            var queryDisplayStatus = Wrapper.QueryDisplayConfig(queryFlag,
+                ref numPathArrayElements, pathInfoArray, ref numModeInfoArrayElements, modeInfoArray);
+
+            foreach (var path in pathInfoArray)
+            {
+                if (path.sourceInfo.statusFlags == DisplayConfigSourceStatus.InUse && path.targetInfo.targetAvailable)
+                {
+                    var displayConfigTargetDeviceName = new DisplayConfigTargetDeviceName
+                    {
+                        header = new DisplayConfigDeviceInfoHeader
+                        {
+                            adapterId = path.targetInfo.adapterId,
+                            id = path.targetInfo.id,
+                            size = Marshal.SizeOf(typeof(DisplayConfigTargetDeviceName)),
+                            type = DisplayConfigDeviceInfoType.GetTargetName,
+                        }
+                    };
+                    Wrapper.DisplayConfigGetDeviceInfo(ref displayConfigTargetDeviceName);
+                    var modes = modeInfoArray.Where((m, i) => i == path.sourceInfo.modeInfoIdx || i == path.targetInfo.modeInfoIdx );
+                    var monitor = new Monitor
+                    {
+                        DisplayName = displayConfigTargetDeviceName.monitorFriendlyDeviceName,
+                        PathString = displayConfigTargetDeviceName.monitorDevicePath,
+                        Path = path,
+                        Modes = modes
+                    };
+                    monitors.Add(monitor);
+                }
+            } 
+            
+            return monitors;
+        }
 
         private bool allowClose = false;
 
@@ -379,16 +422,16 @@ namespace NVStreamer1080 {
             disp.height = h;
             disp.frequency = r;
             ChangeDisplaySettings(ref disp, 1);
-
+            
         }
 
         public Form CaptureOverlay = null;
 
         public List<AutoActionSchedule> ActionsScheduled = new List<AutoActionSchedule>();
+        private List<Monitor> restorationMonitors;
 
         public bool SunshineIsClientConnected = false;
         private void OnTick(object sender, EventArgs e) {
-            var Switch = Path.Combine(Environment.SystemDirectory, "DisplaySwitch.exe");
             var nvStreamers = Process.GetProcesses().Where(a => a.ProcessName.ToLower() == "nvstreamer").ToList();
             var nvRunning = nvStreamers.Any() || SunshineIsClientConnected;
             var nvPids = nvStreamers.Select(a => a.Id);
@@ -422,18 +465,9 @@ namespace NVStreamer1080 {
                 DWidth.Enabled = false;
                 DHeight.Enabled = false;
                 DRefresh.Enabled = false;
-                useSecondScreenCB.Enabled = false;
                 ActionsScheduled.AddRange(ListOnConnect.Items.OfType<AutoAction>().Select(a => new AutoActionSchedule() { ScheduledAction = a, ScheduledDate = now.AddSeconds(a.Delay) }));
-                
-                if (UseSecondScreen) {
-                    DoLog("Switching to external screen");
-                    Process.Start(Switch, "/external");
-                    label1.Text = "NVStreamer active: External";
-                } else {
-                    DoLog($"Setting target resolution {DesiredWidth}x{DesiredHeight}@{DesiredRefresh}");
-                    SetResolution(DesiredWidth, DesiredHeight, DesiredRefresh);
-                    label1.Text = $"NVStreamer active: {DesiredWidth}x{DesiredHeight}@{DesiredRefresh}";
-                }
+
+                BuildTopology();
                 StreamingIsActive = true;
             } else if (!nvRunning && StreamingIsActive) {
                 DoLog("Stream end detected");
@@ -441,21 +475,80 @@ namespace NVStreamer1080 {
                 DWidth.Enabled = true;
                 DHeight.Enabled = true;
                 DRefresh.Enabled = true;
-                useSecondScreenCB.Enabled = true;
                 ActionsScheduled.AddRange(ListOnDisconnect.Items.OfType<AutoAction>().Select(a => new AutoActionSchedule() { ScheduledAction = a, ScheduledDate = now.AddSeconds(a.Delay) }));
-                if (UseSecondScreen) {
-                    DoLog("Switching to internal screen");
-                    Process.Start(Switch, "/internal");
-                } else {
-                    DoLog($"Restoring resolution {ReturnWidth}x{ReturnHeight}@{ReturnRefresh}");
-                    SetResolution(ReturnWidth, ReturnHeight, ReturnRefresh);
-                }
+
+                RestoreTopology();
                 StreamingIsActive = false;
                 if (RestoreAccelerationPrecision)
                     SetPointerEnhanced(initialMousePrecise);
                 label1.Text = "NVStreamer not active";
-                useSecondScreenCB.Enabled = true;
             }
+        }
+
+        private void BuildTopology()
+        {
+            restorationMonitors = fetchMonitorList();
+
+            // determine selected monitor
+            var pathList = new List<DisplayConfigPathInfo>();
+            foreach (Monitor monitor in restorationMonitors)
+            {
+                var path = monitor.Path;
+                var isSelected = monitor.PathString == ((Monitor)monitorSelectionList.SelectedItem).PathString;
+                path.flags = isSelected ? DisplayConfigFlags.PathActive : DisplayConfigFlags.Zero;
+                path.sourceInfo.modeInfoIdx = uint.MaxValue;
+                path.targetInfo.modeInfoIdx = uint.MaxValue;
+                pathList.Add(path);
+            }
+
+            var res = Wrapper.SetDisplayConfig(
+                pathList.Count, pathList.ToArray(),
+                0, null,
+                SdcFlags.Apply | SdcFlags.TopologySupplied | SdcFlags.AllowPathOrderChanges
+            );
+
+            // For some reason, the old API sets scaling mode to "Stretch" while the new API doesn't seem to.
+            // Ideally we'd set the "scaling" flag on our active path to DisplayConfigScaling.Stretched, set the
+            // desired resolution, and would be able to move on. Alas.
+            SetResolution(DesiredWidth, DesiredHeight, DesiredRefresh);
+        }
+
+        private void RestoreTopology()
+        {
+            var pathList = new List<DisplayConfigPathInfo>();
+            foreach (Monitor monitor in restorationMonitors)
+            {
+                var path = monitor.Path;
+                path.sourceInfo.modeInfoIdx = uint.MaxValue;
+                path.targetInfo.modeInfoIdx = uint.MaxValue;
+                pathList.Add(path);
+            }
+
+            var res = Wrapper.SetDisplayConfig(
+                pathList.Count, pathList.ToArray(),
+                0, null,
+                SdcFlags.Apply | SdcFlags.TopologySupplied | SdcFlags.AllowPathOrderChanges
+            );
+
+            // Ideally, we would be using SetDisplayConfig to restore the resolution using source & target modes stored in restorationMonitors.Modes.
+            // The windows API is particular and doesn't give many hints as to why it is failing, and so that is why we do it in two steps instead of one.
+            var primary = restorationMonitors.First();
+            var restorationSource = primary.Modes.First(mode => mode.infoType == DisplayConfigModeInfoType.Source);
+            int refresh = (int)(primary.Path.targetInfo.refreshRate.numerator / primary.Path.targetInfo.refreshRate.denominator);
+            SetResolution(restorationSource.sourceMode.width, restorationSource.sourceMode.height, refresh);
+        }
+        
+        private void DoMonitorLog(Monitor monitor)
+        {
+            DoLog(monitor.DisplayName);
+            DoLog(JSON.Serialize(monitor.Path.sourceInfo));
+            DoLog(JSON.Serialize(monitor.Path.targetInfo));
+            DoLog(monitor.Modes.First().infoType.ToString());
+            DoLog(JSON.Serialize(monitor.Modes.First().sourceMode));
+            DoLog(JSON.Serialize(monitor.Modes.First().targetMode.targetVideoSignalInfo));
+            DoLog(monitor.Modes.Last().infoType.ToString());
+            DoLog(JSON.Serialize(monitor.Modes.Last().sourceMode));
+            DoLog(JSON.Serialize(monitor.Modes.Last().targetMode.targetVideoSignalInfo));
         }
 
         private void SilentLaunchAutoHide(object sender, EventArgs e) {
@@ -472,12 +565,9 @@ namespace NVStreamer1080 {
             DesiredWidth = int.TryParse(DWidth.Text, out int w) ? w : 1920;
             DesiredHeight = int.TryParse(DHeight.Text, out int h) ? h : 1080;
             DesiredRefresh = int.TryParse(DRefresh.Text, out int r) ? r : 60;
-            ReturnWidth = int.TryParse(SWidth.Text, out int rw) ? rw : 1920;
-            ReturnHeight = int.TryParse(SHeight.Text, out int rh) ? rh : 1080;
-            ReturnRefresh = int.TryParse(SRefresh.Text, out int rr) ? rr : 60;
-            UseSecondScreen = useSecondScreenCB.Checked;
             RestoreAccelerationPrecision = CbAccelRestore.Checked;
             SunshinePath = InSunshinePath.Text;
+            SelectedMonitorName = ((Monitor)monitorSelectionList.SelectedItem).DisplayName;
         }
 
         private void DoLog(string message) {
@@ -520,26 +610,13 @@ namespace NVStreamer1080 {
             EndActions = ListOnDisconnect.Items.OfType<AutoAction>().ToArray();
         }
 
-        private void DisconnectItemEdit(object sender, EventArgs e) {
+        private void DisconnectItemEdit(object sender, EventArgs e)
+        {
             var action = (AutoAction)ListOnDisconnect.SelectedItem;
             new ActionEdit(action).ShowDialog(this);
             ListOnDisconnect.Items[ListOnDisconnect.Items.IndexOf(action)] = action;
             EndActions = ListOnDisconnect.Items.OfType<AutoAction>().ToArray();
         }
-
-        private void OnOverrideReturnChange(object sender, EventArgs e) {
-            if (cbOverrideReturnRes.Checked) {
-                SWidth.Enabled = true;
-                SHeight.Enabled = true;
-                SRefresh.Enabled = true;
-            } else {
-                SWidth.Enabled = false;
-                SHeight.Enabled = false;
-                SRefresh.Enabled = false;
-            }
-            OverrideReturnResolution = cbOverrideReturnRes.Checked;
-        }
-
 
         private void SunshineInit() {
 
@@ -620,6 +697,11 @@ namespace NVStreamer1080 {
         private void OnInpSunshineChange(object sender, EventArgs e) {
             SunshinePath=InSunshinePath.Text;
             SunshineInit();
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
