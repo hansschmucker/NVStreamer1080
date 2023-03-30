@@ -87,7 +87,6 @@ namespace NVStreamer1080 {
             }
             set
             {
-                DoLog($"Setting {value}");
                 Registry.CurrentUser.OpenSubKey("SOFTWARE\\TapperWare\\NVStreamer1080", true).SetValue("SelectedMonitorName", value, RegistryValueKind.String);
             }
         }
@@ -433,7 +432,6 @@ namespace NVStreamer1080 {
 
         public bool SunshineIsClientConnected = false;
         private void OnTick(object sender, EventArgs e) {
-            var Switch = Path.Combine(Environment.SystemDirectory, "DisplaySwitch.exe");
             var nvStreamers = Process.GetProcesses().Where(a => a.ProcessName.ToLower() == "nvstreamer").ToList();
             var nvRunning = nvStreamers.Any() || SunshineIsClientConnected;
             var nvPids = nvStreamers.Select(a => a.Id);
@@ -470,10 +468,6 @@ namespace NVStreamer1080 {
                 ActionsScheduled.AddRange(ListOnConnect.Items.OfType<AutoAction>().Select(a => new AutoActionSchedule() { ScheduledAction = a, ScheduledDate = now.AddSeconds(a.Delay) }));
 
                 BuildTopology();
-                // For some reason, the old API sets scaling mode to "Stretch" while the new API doesn't seem to.
-                // Ideally we'd set the "scaling" flag on our active path to DisplayConfigScaling.Stretched, set the
-                // desired resolution, and would be able to move on. Alas.
-                SetResolution(DesiredWidth, DesiredHeight, DesiredRefresh);
                 StreamingIsActive = true;
             } else if (!nvRunning && StreamingIsActive) {
                 DoLog("Stream end detected");
@@ -512,6 +506,11 @@ namespace NVStreamer1080 {
                 0, null,
                 SdcFlags.Apply | SdcFlags.TopologySupplied | SdcFlags.AllowPathOrderChanges
             );
+
+            // For some reason, the old API sets scaling mode to "Stretch" while the new API doesn't seem to.
+            // Ideally we'd set the "scaling" flag on our active path to DisplayConfigScaling.Stretched, set the
+            // desired resolution, and would be able to move on. Alas.
+            SetResolution(DesiredWidth, DesiredHeight, DesiredRefresh);
         }
 
         private void RestoreTopology()
