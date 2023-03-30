@@ -22,7 +22,6 @@ namespace NVStreamer1080
             this.CheckTimer = new System.Windows.Forms.Timer(this.components);
             this.label1 = new System.Windows.Forms.Label();
             this.HideTimer = new System.Windows.Forms.Timer(this.components);
-            this.useSecondScreenCB = new System.Windows.Forms.CheckBox();
             this.DWidth = new System.Windows.Forms.TextBox();
             this.DHeight = new System.Windows.Forms.TextBox();
             this.DRefresh = new System.Windows.Forms.TextBox();
@@ -48,16 +47,11 @@ namespace NVStreamer1080
             this.BtnDisconnectEdit = new System.Windows.Forms.Button();
             this.BtnDisconnectDel = new System.Windows.Forms.Button();
             this.BtnDisconnectadd = new System.Windows.Forms.Button();
-            this.label8 = new System.Windows.Forms.Label();
-            this.SRefresh = new System.Windows.Forms.TextBox();
-            this.SHeight = new System.Windows.Forms.TextBox();
-            this.SWidth = new System.Windows.Forms.TextBox();
-            this.cbOverrideReturnRes = new System.Windows.Forms.CheckBox();
             this.InSunshinePath = new System.Windows.Forms.TextBox();
             this.BtnSunshineBrowse = new System.Windows.Forms.Button();
             this.SunshineInfo = new System.Windows.Forms.Label();
             this.BrowseSunshinePath = new System.Windows.Forms.OpenFileDialog();
-            this.invertMonitorPriorityCB = new System.Windows.Forms.CheckBox();
+            this.monitorSelectionList = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
             // 
             // CheckTimer
@@ -80,20 +74,9 @@ namespace NVStreamer1080
             this.HideTimer.Interval = 3000;
             this.HideTimer.Tick += new System.EventHandler(this.SilentLaunchAutoHide);
             // 
-            // useSecondScreenCB
-            // 
-            this.useSecondScreenCB.AutoSize = true;
-            this.useSecondScreenCB.Location = new System.Drawing.Point(12, 25);
-            this.useSecondScreenCB.Name = "useSecondScreenCB";
-            this.useSecondScreenCB.Size = new System.Drawing.Size(218, 17);
-            this.useSecondScreenCB.TabIndex = 1;
-            this.useSecondScreenCB.Text = "Switch to second screen while streaming";
-            this.useSecondScreenCB.UseVisualStyleBackColor = true;
-            this.useSecondScreenCB.CheckedChanged += new System.EventHandler(this.SaveSettings);
-            // 
             // DWidth
             // 
-            this.DWidth.Location = new System.Drawing.Point(13, 108);
+            this.DWidth.Location = new System.Drawing.Point(15, 154);
             this.DWidth.Margin = new System.Windows.Forms.Padding(2);
             this.DWidth.Name = "DWidth";
             this.DWidth.Size = new System.Drawing.Size(68, 20);
@@ -101,7 +84,7 @@ namespace NVStreamer1080
             // 
             // DHeight
             // 
-            this.DHeight.Location = new System.Drawing.Point(84, 108);
+            this.DHeight.Location = new System.Drawing.Point(86, 154);
             this.DHeight.Margin = new System.Windows.Forms.Padding(2);
             this.DHeight.Name = "DHeight";
             this.DHeight.Size = new System.Drawing.Size(68, 20);
@@ -109,7 +92,7 @@ namespace NVStreamer1080
             // 
             // DRefresh
             // 
-            this.DRefresh.Location = new System.Drawing.Point(154, 108);
+            this.DRefresh.Location = new System.Drawing.Point(156, 154);
             this.DRefresh.Margin = new System.Windows.Forms.Padding(2);
             this.DRefresh.Name = "DRefresh";
             this.DRefresh.Size = new System.Drawing.Size(68, 20);
@@ -118,7 +101,7 @@ namespace NVStreamer1080
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 79);
+            this.label2.Location = new System.Drawing.Point(14, 125);
             this.label2.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(176, 26);
@@ -128,7 +111,7 @@ namespace NVStreamer1080
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(10, 181);
+            this.label3.Location = new System.Drawing.Point(19, 231);
             this.label3.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(59, 13);
@@ -138,7 +121,7 @@ namespace NVStreamer1080
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(17, 194);
+            this.label4.Location = new System.Drawing.Point(26, 244);
             this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(37, 13);
@@ -148,7 +131,7 @@ namespace NVStreamer1080
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(17, 207);
+            this.label5.Location = new System.Drawing.Point(26, 257);
             this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(35, 13);
@@ -158,7 +141,7 @@ namespace NVStreamer1080
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(17, 220);
+            this.label6.Location = new System.Drawing.Point(26, 270);
             this.label6.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(79, 13);
@@ -168,7 +151,7 @@ namespace NVStreamer1080
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(17, 233);
+            this.label7.Location = new System.Drawing.Point(26, 283);
             this.label7.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(66, 13);
@@ -178,7 +161,7 @@ namespace NVStreamer1080
             // InfoReturnParams
             // 
             this.InfoReturnParams.AutoSize = true;
-            this.InfoReturnParams.Location = new System.Drawing.Point(112, 233);
+            this.InfoReturnParams.Location = new System.Drawing.Point(121, 283);
             this.InfoReturnParams.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.InfoReturnParams.Name = "InfoReturnParams";
             this.InfoReturnParams.Size = new System.Drawing.Size(10, 13);
@@ -188,7 +171,7 @@ namespace NVStreamer1080
             // InfoTargetParams
             // 
             this.InfoTargetParams.AutoSize = true;
-            this.InfoTargetParams.Location = new System.Drawing.Point(112, 220);
+            this.InfoTargetParams.Location = new System.Drawing.Point(121, 270);
             this.InfoTargetParams.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.InfoTargetParams.Name = "InfoTargetParams";
             this.InfoTargetParams.Size = new System.Drawing.Size(10, 13);
@@ -198,7 +181,7 @@ namespace NVStreamer1080
             // InfoState
             // 
             this.InfoState.AutoSize = true;
-            this.InfoState.Location = new System.Drawing.Point(112, 207);
+            this.InfoState.Location = new System.Drawing.Point(121, 257);
             this.InfoState.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.InfoState.Name = "InfoState";
             this.InfoState.Size = new System.Drawing.Size(73, 13);
@@ -208,7 +191,7 @@ namespace NVStreamer1080
             // InfoMode
             // 
             this.InfoMode.AutoSize = true;
-            this.InfoMode.Location = new System.Drawing.Point(112, 194);
+            this.InfoMode.Location = new System.Drawing.Point(121, 244);
             this.InfoMode.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.InfoMode.Name = "InfoMode";
             this.InfoMode.Size = new System.Drawing.Size(10, 13);
@@ -344,54 +327,9 @@ namespace NVStreamer1080
             this.BtnDisconnectadd.UseVisualStyleBackColor = true;
             this.BtnDisconnectadd.Click += new System.EventHandler(this.DisconnectItemAdd);
             // 
-            // label8
-            // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(12, 147);
-            this.label8.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(176, 13);
-            this.label8.TabIndex = 38;
-            this.label8.Text = "                 (only if switch is disabled)";
-            // 
-            // SRefresh
-            // 
-            this.SRefresh.Location = new System.Drawing.Point(153, 162);
-            this.SRefresh.Margin = new System.Windows.Forms.Padding(2);
-            this.SRefresh.Name = "SRefresh";
-            this.SRefresh.Size = new System.Drawing.Size(68, 20);
-            this.SRefresh.TabIndex = 37;
-            // 
-            // SHeight
-            // 
-            this.SHeight.Location = new System.Drawing.Point(83, 162);
-            this.SHeight.Margin = new System.Windows.Forms.Padding(2);
-            this.SHeight.Name = "SHeight";
-            this.SHeight.Size = new System.Drawing.Size(68, 20);
-            this.SHeight.TabIndex = 36;
-            // 
-            // SWidth
-            // 
-            this.SWidth.Location = new System.Drawing.Point(12, 162);
-            this.SWidth.Margin = new System.Windows.Forms.Padding(2);
-            this.SWidth.Name = "SWidth";
-            this.SWidth.Size = new System.Drawing.Size(68, 20);
-            this.SWidth.TabIndex = 35;
-            // 
-            // cbOverrideReturnRes
-            // 
-            this.cbOverrideReturnRes.AutoSize = true;
-            this.cbOverrideReturnRes.Location = new System.Drawing.Point(12, 131);
-            this.cbOverrideReturnRes.Name = "cbOverrideReturnRes";
-            this.cbOverrideReturnRes.Size = new System.Drawing.Size(189, 17);
-            this.cbOverrideReturnRes.TabIndex = 39;
-            this.cbOverrideReturnRes.Text = "Override detected return resolution";
-            this.cbOverrideReturnRes.UseVisualStyleBackColor = true;
-            this.cbOverrideReturnRes.CheckedChanged += new System.EventHandler(this.OnOverrideReturnChange);
-            // 
             // InSunshinePath
             // 
-            this.InSunshinePath.Location = new System.Drawing.Point(13, 286);
+            this.InSunshinePath.Location = new System.Drawing.Point(12, 316);
             this.InSunshinePath.Name = "InSunshinePath";
             this.InSunshinePath.Size = new System.Drawing.Size(377, 20);
             this.InSunshinePath.TabIndex = 40;
@@ -400,7 +338,7 @@ namespace NVStreamer1080
             // 
             // BtnSunshineBrowse
             // 
-            this.BtnSunshineBrowse.Location = new System.Drawing.Point(396, 284);
+            this.BtnSunshineBrowse.Location = new System.Drawing.Point(395, 314);
             this.BtnSunshineBrowse.Name = "BtnSunshineBrowse";
             this.BtnSunshineBrowse.Size = new System.Drawing.Size(75, 23);
             this.BtnSunshineBrowse.TabIndex = 41;
@@ -412,7 +350,7 @@ namespace NVStreamer1080
             // SunshineInfo
             // 
             this.SunshineInfo.AutoSize = true;
-            this.SunshineInfo.Location = new System.Drawing.Point(14, 266);
+            this.SunshineInfo.Location = new System.Drawing.Point(13, 296);
             this.SunshineInfo.Name = "SunshineInfo";
             this.SunshineInfo.Size = new System.Drawing.Size(172, 13);
             this.SunshineInfo.TabIndex = 42;
@@ -422,31 +360,24 @@ namespace NVStreamer1080
             // 
             this.BrowseSunshinePath.FileName = "sunshine.exe";
             // 
-            // invertMonitorPriorityCB
+            // monitorSelectionList
             // 
-            this.invertMonitorPriorityCB.AutoSize = true;
-            this.invertMonitorPriorityCB.Location = new System.Drawing.Point(32, 49);
-            this.invertMonitorPriorityCB.Name = "invertMonitorPriorityCB";
-            this.invertMonitorPriorityCB.Size = new System.Drawing.Size(123, 17);
-            this.invertMonitorPriorityCB.TabIndex = 2;
-            this.invertMonitorPriorityCB.Text = "Invert monitor priority";
-            this.invertMonitorPriorityCB.UseVisualStyleBackColor = true;
-            this.invertMonitorPriorityCB.CheckedChanged += new System.EventHandler(this.SaveSettings);
+            this.monitorSelectionList.FormattingEnabled = true;
+            this.monitorSelectionList.Location = new System.Drawing.Point(15, 26);
+            this.monitorSelectionList.Name = "monitorSelectionList";
+            this.monitorSelectionList.Size = new System.Drawing.Size(209, 69);
+            this.monitorSelectionList.TabIndex = 43;
+            this.monitorSelectionList.SelectedIndexChanged += new System.EventHandler(this.SaveSettings);
             // 
             // NVStreamerMainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(491, 504);
-            this.Controls.Add(this.invertMonitorPriorityCB);
+            this.Controls.Add(this.monitorSelectionList);
             this.Controls.Add(this.SunshineInfo);
             this.Controls.Add(this.BtnSunshineBrowse);
             this.Controls.Add(this.InSunshinePath);
-            this.Controls.Add(this.cbOverrideReturnRes);
-            this.Controls.Add(this.label8);
-            this.Controls.Add(this.SRefresh);
-            this.Controls.Add(this.SHeight);
-            this.Controls.Add(this.SWidth);
             this.Controls.Add(this.BtnDisconnectEdit);
             this.Controls.Add(this.BtnDisconnectDel);
             this.Controls.Add(this.BtnDisconnectadd);
@@ -472,7 +403,6 @@ namespace NVStreamer1080
             this.Controls.Add(this.DRefresh);
             this.Controls.Add(this.DHeight);
             this.Controls.Add(this.DWidth);
-            this.Controls.Add(this.useSecondScreenCB);
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
             this.Name = "NVStreamerMainUI";
@@ -488,7 +418,6 @@ namespace NVStreamer1080
         private System.Windows.Forms.Timer CheckTimer;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Timer HideTimer;
-        private System.Windows.Forms.CheckBox useSecondScreenCB;
         private System.Windows.Forms.TextBox DWidth;
         private System.Windows.Forms.TextBox DHeight;
         private System.Windows.Forms.TextBox DRefresh;
@@ -514,16 +443,11 @@ namespace NVStreamer1080
         private System.Windows.Forms.Button BtnDisconnectEdit;
         private System.Windows.Forms.Button BtnDisconnectDel;
         private System.Windows.Forms.Button BtnDisconnectadd;
-        private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TextBox SRefresh;
-        private System.Windows.Forms.TextBox SHeight;
-        private System.Windows.Forms.TextBox SWidth;
-        private System.Windows.Forms.CheckBox cbOverrideReturnRes;
         private System.Windows.Forms.TextBox InSunshinePath;
         private System.Windows.Forms.Button BtnSunshineBrowse;
         private System.Windows.Forms.Label SunshineInfo;
         private System.Windows.Forms.OpenFileDialog BrowseSunshinePath;
-        private System.Windows.Forms.CheckBox invertMonitorPriorityCB;
+        private System.Windows.Forms.ListBox monitorSelectionList;
     }
 }
 
